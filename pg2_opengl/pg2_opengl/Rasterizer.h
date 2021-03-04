@@ -1,22 +1,22 @@
 #pragma once
 
 #include "vector3.h"
+#include "Scene.h"
+#include <memory>
 
 class Rasterizer {
 private:
 	int width, height;
-
-	GLfloat* vertices; //GLfloat vertices[];
-	int no_vertices;
-	unsigned int* indices; //unsigned int indices[];
-
-	//void glfw_callback(const int error, const char* description);
+	float fovY;
+	Vector3 viewFrom, viewAt;
 
 	char* LoadShader(const char* file_name);
 		
 	GLint CheckShader(const GLenum shader);
 
 	bool check_gl(const GLenum error);
+
+	std::shared_ptr<Scene> scene;
 
 	//INIT DEVICE
 	GLFWwindow* window;
@@ -27,11 +27,10 @@ private:
 	GLuint shader_program;
 
 	//INIT BUFFERS
-
-
+	GLuint vao, vbo, ebo;
 
 public:
-	Rasterizer(int width, int height, float fov, Vector3 viewFrom, Vector3 viewAt, float something, float somethingElse); //TODO -> fix something and somethingElse params
+	Rasterizer(int width, int height, float fovY, Vector3 viewFrom, Vector3 viewAt, float something, float somethingElse); //TODO -> fix something and somethingElse params
 
 	~Rasterizer();
 
@@ -56,5 +55,6 @@ public:
 	/// </summary>
 	void initBuffers();
 
+	void mainLoop();
 };
 

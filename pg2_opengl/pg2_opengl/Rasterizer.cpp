@@ -71,11 +71,24 @@ bool Rasterizer::check_gl(const GLenum error) {
 	return true;
 }
 
-Rasterizer::Rasterizer(int width, int height, float fov, Vector3 viewFrom, Vector3 viewAt, float something, float somethingElse) {
-	//TODO -> implement
+Rasterizer::Rasterizer(int width, int height, float fovY, Vector3 viewFrom, Vector3 viewAt, float something, float somethingElse) {
+	this->width = width;
+	this->height = height;
+	this->fovY = fovY;
+	this->viewFrom = viewFrom;
+	this->viewAt = viewAt;
 }
 
 Rasterizer::~Rasterizer() {
+	
+	glDeleteShader( vertex_shader );
+	glDeleteShader( fragment_shader );
+	glDeleteProgram( shader_program );
+
+	glDeleteBuffers( 1, &vbo );
+	glDeleteVertexArrays( 1, &vao );
+
+	glfwTerminate();
 	delete this->window;
 }
 
@@ -164,36 +177,55 @@ void Rasterizer::initPrograms() {	///řeší vytvoření vertex a fragment shade
 	
 	// TODO check linking
 	glUseProgram( shader_program );
+
+	//TODO - asi remove
+	glPointSize( 10.0f );	
+	glLineWidth( 2.0f );
+	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 }
 
 void Rasterizer::loadScene(std::string &file_name) {
-	//TODO -> fill this->verticies, this->no_verticies, this->indicies
+	this->scene = std::make_shared<Scene>(file_name);
 }
 
 void Rasterizer::initBuffers() {
-	const int vertex_stride = sizeof( this->vertices ) / no_vertices;
-
-	GLuint vao = 0; ///VAO BUFFER = popisuje konfiguraci bufferů, které budou v rámci objektu vystupovat
+	this->vao = 0; ///VAO BUFFER = popisuje konfiguraci bufferů, které budou v rámci objektu vystupovat
 	glGenVertexArrays( 1, &vao );
 	glBindVertexArray( vao ); //timhle se ten buffer nabinduje k vao
 
-	GLuint vbo = 0;	//vertex buffer
+	this->vbo = 0;	//vertex buffer
 	glGenBuffers( 1, &vbo ); // generate vertex buffer object (one of OpenGL objects) and get the unique ID corresponding to that buffer
 	glBindBuffer( GL_ARRAY_BUFFER, vbo ); // bind the newly created buffer to the GL_ARRAY_BUFFER target
-	glBufferData( GL_ARRAY_BUFFER, sizeof( this->vertices ), this->vertices, GL_STATIC_DRAW ); // copies the previously defined vertex data into the buffer's memory	//prakticky memcpy, opengl neví nic o tom, jak jsou data zorganizovana
+	glBufferData( GL_ARRAY_BUFFER, sizeof( this->scene->getVerticies() ), this->scene->getVerticies(), GL_STATIC_DRAW ); // copies the previously defined vertex data into the buffer's memory	//prakticky memcpy, opengl neví nic o tom, jak jsou data zorganizovana
 																				   // vertex position
-	glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, vertex_stride, 0 );	//popiseme, jaka je struktura toho vertex bufferu = na nultem indexu jsou veci velikosti 3 (x, y, z) typu float a nechceme je normalizovat, stride je pocet bytu, ktere lezi mezi dvema nasledujicimi zaznamy | posledni je offset od zacatku pole
+	glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, scene->getVertexStride(), 0 );	//popiseme, jaka je struktura toho vertex bufferu = na nultem indexu jsou veci velikosti 3 (x, y, z) typu float a nechceme je normalizovat, stride je pocet bytu, ktere lezi mezi dvema nasledujicimi zaznamy | posledni je offset od zacatku pole
 	glEnableVertexAttribArray( 0 );	//kazdy index, ktery popiseme, musime zenablovat
 									// vertex texture coordinates		//popisujeme strukturu texturovacich souradnic
-	glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE, vertex_stride, ( void* )( sizeof( float ) * 3 ) );
+	glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE, scene->getVertexStride(), ( void* )( sizeof( float ) * 3 ) );
 	glEnableVertexAttribArray( 1 );
 
-	GLuint ebo = 0; // optional buffer of indices			//element array buffer, pry to neni dobra cesta, nemusim ho vytvaret
+	this->ebo = 0; // optional buffer of indices			//element array buffer, pry to neni dobra cesta, nemusim ho vytvaret
 	glGenBuffers( 1, &ebo );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebo );
-	glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof( this->indices ), this->indices, GL_STATIC_DRAW );
+	glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof( this->scene->getIndicies() ), this->scene->getIndicies(), GL_STATIC_DRAW );
 	//vbo a ebo ulozeno ve vao
 	///po sem = ukázka, jak se tvoří vertex buffer
 
 	
+}
+
+void Rasterizer::mainLoop() {
+	while (!glfwWindowShouldClose(this->window)) {		
+		glClearColor( 0.2f, 0.3f, 0.3f, 1.0f ); // state setting function
+		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT ); // state using function
+
+		glBindVertexArray( vao );
+		//glDrawArrays( GL_TRIANGLES, 0, 3 );
+		glDrawArrays( GL_POINTS, 0, 3 );
+		glDrawArrays( GL_LINE_LOOP, 0, 3 );
+		glDrawElements( GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0 ); // optional - render from an index buffer
+
+		glfwSwapBuffers( window );
+		glfwPollEvents();
+	}
 }
