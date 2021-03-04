@@ -24,5 +24,6 @@ public:
 
 	unsigned int* getIndicies() { return (unsigned int*) &indices[0]; }
 
+	int getVertexStride() { return vertex_stride; };
 };
 
