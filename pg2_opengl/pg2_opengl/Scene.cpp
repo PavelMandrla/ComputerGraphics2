@@ -17,8 +17,8 @@ Scene::Scene(std::string& file_name) {
 				verticies.push_back(vertex.position.z);
 				verticies.push_back(vertex.texture_coords->u);
 				verticies.push_back(vertex.texture_coords->v);
+				no_vertices++;
 			}
-			no_vertices++;
 			indices.push_back(k);
 			indices.push_back(k+1);
 			indices.push_back(k+2);
@@ -26,5 +26,4 @@ Scene::Scene(std::string& file_name) {
 	}
 
 	this->vertex_stride = this->verticies.size() / no_vertices;
-
 }

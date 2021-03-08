@@ -1,6 +1,8 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "tutorials.h"
 #include "utils.h"
+#include "Rasterizer.h"
+#include "mymath.h"
 
 /* OpenGL check state */
 bool check_gl( const GLenum error )
@@ -16,7 +18,7 @@ bool check_gl( const GLenum error )
 
 	return true;
 }
-
+/*
 /* glfw callback */
 void glfw_callback( const int error, const char * description )
 {
@@ -58,8 +60,8 @@ char * LoadShader( const char * file_name )
 	}
 	else
 	{
-		/* v glShaderSource nezadáváme v posledním parametru délku,
-		takže øetìzec musí být null terminated, proto +1 a reset na 0*/
+		/* v glShaderSource nezadÃ¡vÃ¡me v poslednÃ­m parametru dÃ©lku,
+		takÅ¾e Ã¸etÃ¬zec musÃ­ bÃ½t null terminated, proto +1 a reset na 0*/
 		shader = new char[file_size + 1];
 		memset( shader, 0, sizeof( *shader ) * ( file_size + 1 ) );
 
@@ -196,6 +198,9 @@ int tutorial_1( const int width, const int height )
 	glShaderSource( vertex_shader, 1, &vertex_shader_source, nullptr );
 	glCompileShader( vertex_shader );
 	SAFE_DELETE_ARRAY( vertex_shader_source );
+
+	//glBindAttribLocation(vertex_shader, 2, );
+
 	CheckShader( vertex_shader );
 	
 	GLuint fragment_shader = glCreateShader( GL_FRAGMENT_SHADER );
@@ -242,4 +247,13 @@ int tutorial_1( const int width, const int height )
 	glfwTerminate();
 
 	return EXIT_SUCCESS;
+}
+
+void tutorial() {
+	Rasterizer rastarizer( 640, 480, deg2rad( 20.0f ), Vector3( 200, 300, 400 ), Vector3( 0, 0, 30 ), 1.0f, 1000.0f ); // #smokeWeedEveryDay
+	rastarizer.initDevice();
+	rastarizer.initPrograms();
+	rastarizer.loadScene("D:\\prg\\cpp\\ComputerGraphics2\\data\\6887_allied_avenger.obj");
+	rastarizer.initBuffers();
+	rastarizer.mainLoop();
 }

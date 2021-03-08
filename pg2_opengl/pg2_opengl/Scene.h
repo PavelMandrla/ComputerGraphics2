@@ -20,9 +20,13 @@ private:
 public:
 	Scene(std::string &file_name);
 
-	GLfloat* getVerticies() { return (GLfloat*) &verticies[0]; }
+	GLfloat* getVerticies() { return verticies.data(); }
 
-	unsigned int* getIndicies() { return (unsigned int*) &indices[0]; }
+	unsigned int getVerteciesCount() { return verticies.size(); }
+
+	unsigned int* getIndicies() { return indices.data(); }
+
+	unsigned int getIndiciesCount() { return indices.size(); }
 
 	int getVertexStride() { return vertex_stride; };
 };

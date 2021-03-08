@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "Rasterizer.h"
 #include "utils.h"
+#include "glutils.h"
 
 char* Rasterizer::LoadShader(const char* file_name) {
 	FILE * file = fopen( file_name, "rt" );
@@ -69,6 +70,49 @@ bool Rasterizer::check_gl(const GLenum error) {
 		return false;
 	}
 	return true;
+}
+
+Matrix4x4 Rasterizer::getM() {
+	return Matrix4x4 (	//TODO ??shift?? ??scale?? ??shear?? ??ALL??
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1
+	);
+}
+
+Matrix4x4 Rasterizer::getV() {
+	Vector3 z_e = (this->viewFrom - this->viewAt) / (this->viewFrom - this->viewAt).L2Norm();
+	Vector3 x_e = Vector3{ 0,0,1 }.CrossProduct(z_e);
+	Vector3 y_e = z_e.CrossProduct(x_e);
+
+	return Matrix4x4(
+		x_e.x,	y_e.x,	z_e.x,	viewFrom.x,
+		x_e.y,	y_e.y,	z_e.y,	viewFrom.y,
+		x_e.z,	y_e.z,	z_e.z,	viewFrom.z,
+		0,		0,		0,		1.0f
+	);
+}
+
+Matrix4x4 Rasterizer::getP() {
+	float n = 1;	//??
+	float f = 10;	//??
+
+	auto fovX = 2 * atan(tan(this->fovY * 0.5) * ((float)this->width/(float)this->height));
+
+	float a = (n + f) / (n - f);
+	float b = (2 * n * f) / (n - f);
+
+	return Matrix4x4(
+		1.0f / tan(fovX / 2),	0,						0,	0,
+		0,						1.0f / tan(fovY / 2),	0,	0,		//	+/-
+		0,						0,						a,	b,
+		0,						0,						1,	0
+	);
+}
+
+Matrix4x4 Rasterizer::getMVP() {
+	return this->getM() * this->getV() * this->getP();
 }
 
 Rasterizer::Rasterizer(int width, int height, float fovY, Vector3 viewFrom, Vector3 viewAt, float something, float somethingElse) {
@@ -179,16 +223,51 @@ void Rasterizer::initPrograms() {	///řeší vytvoření vertex a fragment shade
 	glUseProgram( shader_program );
 
 	//TODO - asi remove
-	glPointSize( 10.0f );	
+	//glPointSize( 10.0f );	
 	glLineWidth( 2.0f );
 	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 }
 
-void Rasterizer::loadScene(std::string &file_name) {
+void Rasterizer::loadScene(std::string file_name) {
 	this->scene = std::make_shared<Scene>(file_name);
 }
 
 void Rasterizer::initBuffers() {
+	/*
+	GLfloat vertices[] =
+	{
+		-0.9f, 0.9f, 0.0f,  0.0f, 1.0f, // vertex 0 : p0.x, p0.y, p0.z, t0.u, t0.v
+		0.9f, 0.9f, 0.0f,   1.0f, 1.0f, // vertex 1 : p1.x, p1.y, p1.z, t1.u, t1.v
+		0.0f, -0.9f, 0.0f,  0.5f, 0.0f  // vertex 2 : p2.x, p2.y, p2.z, t2.u, t2.v
+	};
+	const int no_vertices = 3;
+	const int vertex_stride = sizeof( vertices ) / no_vertices;	
+	// optional index array
+	unsigned int indices[] =
+	{  
+		0, 1, 2
+	};
+
+	vao = 0;
+	glGenVertexArrays( 1, &vao );
+	glBindVertexArray( vao );
+	vbo = 0;
+	glGenBuffers( 1, &vbo ); // generate vertex buffer object (one of OpenGL objects) and get the unique ID corresponding to that buffer
+	glBindBuffer( GL_ARRAY_BUFFER, vbo ); // bind the newly created buffer to the GL_ARRAY_BUFFER target
+	glBufferData( GL_ARRAY_BUFFER, sizeof( vertices ), vertices, GL_STATIC_DRAW ); // copies the previously defined vertex data into the buffer's memory
+																				   // vertex position
+	glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, vertex_stride, 0 );
+	glEnableVertexAttribArray( 0 );
+	// vertex texture coordinates
+	glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE, vertex_stride, ( void* )( sizeof( float ) * 3 ) );
+	glEnableVertexAttribArray( 1 );
+	ebo = 0; // optional buffer of indices
+	glGenBuffers( 1, &ebo );
+	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebo );
+	glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof( indices ), indices, GL_STATIC_DRAW );
+	*/
+	
+	
 	this->vao = 0; ///VAO BUFFER = popisuje konfiguraci bufferů, které budou v rámci objektu vystupovat
 	glGenVertexArrays( 1, &vao );
 	glBindVertexArray( vao ); //timhle se ten buffer nabinduje k vao
@@ -196,7 +275,7 @@ void Rasterizer::initBuffers() {
 	this->vbo = 0;	//vertex buffer
 	glGenBuffers( 1, &vbo ); // generate vertex buffer object (one of OpenGL objects) and get the unique ID corresponding to that buffer
 	glBindBuffer( GL_ARRAY_BUFFER, vbo ); // bind the newly created buffer to the GL_ARRAY_BUFFER target
-	glBufferData( GL_ARRAY_BUFFER, sizeof( this->scene->getVerticies() ), this->scene->getVerticies(), GL_STATIC_DRAW ); // copies the previously defined vertex data into the buffer's memory	//prakticky memcpy, opengl neví nic o tom, jak jsou data zorganizovana
+	glBufferData( GL_ARRAY_BUFFER, this->scene->getVerteciesCount() * sizeof(this->scene->getVerticies()[0]), this->scene->getVerticies(), GL_STATIC_DRAW ); // copies the previously defined vertex data into the buffer's memory	//prakticky memcpy, opengl neví nic o tom, jak jsou data zorganizovana
 																				   // vertex position
 	glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, scene->getVertexStride(), 0 );	//popiseme, jaka je struktura toho vertex bufferu = na nultem indexu jsou veci velikosti 3 (x, y, z) typu float a nechceme je normalizovat, stride je pocet bytu, ktere lezi mezi dvema nasledujicimi zaznamy | posledni je offset od zacatku pole
 	glEnableVertexAttribArray( 0 );	//kazdy index, ktery popiseme, musime zenablovat
@@ -207,14 +286,13 @@ void Rasterizer::initBuffers() {
 	this->ebo = 0; // optional buffer of indices			//element array buffer, pry to neni dobra cesta, nemusim ho vytvaret
 	glGenBuffers( 1, &ebo );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebo );
-	glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof( this->scene->getIndicies() ), this->scene->getIndicies(), GL_STATIC_DRAW );
-	//vbo a ebo ulozeno ve vao
-	///po sem = ukázka, jak se tvoří vertex buffer
-
+	glBufferData( GL_ELEMENT_ARRAY_BUFFER, this->scene->getIndiciesCount() * sizeof(this->scene->getIndicies()[0]), this->scene->getIndicies(), GL_STATIC_DRAW );
+	//vbo a ebo ulozeno ve vao	
 	
 }
 
 void Rasterizer::mainLoop() {
+	SetMatrix4x4(this->shader_program, (GLfloat*) getMVP().data(), "myMat");
 	while (!glfwWindowShouldClose(this->window)) {		
 		glClearColor( 0.2f, 0.3f, 0.3f, 1.0f ); // state setting function
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT ); // state using function

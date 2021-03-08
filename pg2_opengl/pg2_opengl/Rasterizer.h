@@ -3,6 +3,7 @@
 #include "vector3.h"
 #include "Scene.h"
 #include <memory>
+#include "matrix4x4.h";
 
 class Rasterizer {
 private:
@@ -17,6 +18,14 @@ private:
 	bool check_gl(const GLenum error);
 
 	std::shared_ptr<Scene> scene;
+
+	Matrix4x4 getM();
+
+	Matrix4x4 getV();
+
+	Matrix4x4 getP();
+
+	Matrix4x4 getMVP();
 
 	//INIT DEVICE
 	GLFWwindow* window;
@@ -48,7 +57,7 @@ public:
 	/// <summary>
 	/// Loads the scene geometry
 	/// </summary>
-	void loadScene(std::string &file_name);
+	void loadScene(std::string file_name);
 
 	/// <summary>
 	/// Initialization of VAO and VBO buffers

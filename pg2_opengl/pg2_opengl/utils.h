@@ -96,4 +96,16 @@ char * RTrim( char * s );
 */
 char * Trim( char *s );
 
+/*! \fn void Swap( T & a, T & b )
+\brief Prohození hodnot.
+\param a první hodnota.
+\param b druhá hodnota.
+*/
+template<typename T> inline void swap( T & a, T & b )
+{
+	const T tmp = a;
+	a = b;
+	b = tmp;
+}
+
 #endif
