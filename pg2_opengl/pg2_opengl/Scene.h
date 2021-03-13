@@ -4,30 +4,25 @@
 #include "surface.h"
 #include "material.h"
 
+//p0.x, p0.y, p0.z, t0.u, t0.v
+typedef struct MyVertex{
+	float x, y, z, u, v;
+};
+
 class Scene {
 private:
 	std::vector<Surface *> surfaces_;
 	std::vector<Material *> materials_;
 
-	//GLfloat* vertices;
-	std::vector<GLfloat> verticies;
-	std::vector<unsigned int> indices;
+	std::vector<MyVertex> verticies;
 
-	int no_vertices;
 	int vertex_stride;
-
 
 public:
 	Scene(std::string &file_name);
 
-	GLfloat* getVerticies() { return verticies.data(); }
+	std::vector<MyVertex> getVerticies() { return this->verticies; }
 
-	unsigned int getVerteciesCount() { return verticies.size(); }
-
-	unsigned int* getIndicies() { return indices.data(); }
-
-	unsigned int getIndiciesCount() { return indices.size(); }
-
-	int getVertexStride() { return vertex_stride; };
+	int getVertexStride() { return this->vertex_stride; };
 };
 

@@ -2,6 +2,7 @@
 #include "Rasterizer.h"
 #include "utils.h"
 #include "glutils.h"
+#include "mymath.h"
 
 char* Rasterizer::LoadShader(const char* file_name) {
 	FILE * file = fopen( file_name, "rt" );
@@ -110,7 +111,10 @@ Matrix4x4 Rasterizer::getP() {
 		0,	0,	-1,	0
 	);
 
-	auto fovX = 2 * atan(tan(this->fovY * 0.5) * ((float)this->width/(float)this->height));
+	float aspect = (float)this->width / (float)this->height;
+
+	auto fovX = 2 * atan(aspect *  tan(this->fovY / 2.0f));
+	
 	float w = 2*n*tan(fovX / 2);
 	float h = 2*n*tan(fovY / 2);
 
@@ -237,7 +241,7 @@ void Rasterizer::initPrograms() {	///řeší vytvoření vertex a fragment shade
 	glUseProgram( shader_program );
 
 	//TODO - asi remove
-	glPointSize( 10.0f );	
+	//glPointSize( 10.0f );	
 	glLineWidth( 2.0f );
 	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 }
@@ -246,21 +250,39 @@ void Rasterizer::loadScene(std::string file_name) {
 	this->scene = std::make_shared<Scene>(file_name);
 }
 
+#include <iostream>
+
+
+/*
+0.00000000f, 0.00000000f, 1.00000000f, 0, 0,//1
+0.13795224f, 0.00000000f, 0.99043888f, 0, 0,//2
+0.04262958f, 0.13120039f, 0.99043888f, 0, 0,//3
+0.27326652f, 0.00000000f, 0.96193832f, 0, 0,//4
+0.18120807f, 0.13165538f, 0.97459245f, 0, 0,//5
+0.08444399f, 0.25989193f, 0.96193832f, 0, 0,//6
+*/
 void Rasterizer::initBuffers() {
 	/*
-	GLfloat vertices[] =
-	{
-		1.6f, 0.0f, -4.0f,  0.0f, 1.0f, // vertex 0 : p0.x, p0.y, p0.z, t0.u, t0.v
-		1.2f, 0.1f, -4.0f,   1.0f, 1.0f, // vertex 1 : p1.x, p1.y, p1.z, t1.u, t1.v
-		1.8f, 0.4f, -3.0f,  0.5f, 0.0f  // vertex 2 : p2.x, p2.y, p2.z, t2.u, t2.v
+	GLfloat vertices[] = {
+		0.00000000f, 0.00000000f, 1.00000000f, 0, 0,//1
+		0.13795224f, 0.00000000f, 0.99043888f, 0, 0,//2
+		0.04262958f, 0.13120039f, 0.99043888f, 0, 0,//3
+
+		0.13795224f, 0.00000000f, 0.99043888f, 0, 0,//2
+		0.27326652f, 0.00000000f, 0.96193832f, 0, 0,//4
+		0.18120807f, 0.13165538f, 0.97459245f, 0, 0,//5
+
+		0.13795224f, 0.00000000f, 0.99043888f, 0, 0,//2
+		0.04262958f, 0.13120039f, 0.99043888f, 0, 0,//3
+		0.18120807f, 0.13165538f, 0.97459245f, 0, 0,//5
+
+		0.04262958f, 0.13120039f, 0.99043888f, 0, 0,//3
+		0.18120807f, 0.13165538f, 0.97459245f, 0, 0,//5
+		0.08444399f, 0.25989193f, 0.96193832f, 0, 0,//6
+
 	};
-	const int no_vertices = 3;
+	const int no_vertices = 12;
 	const int vertex_stride = sizeof( vertices ) / no_vertices;	
-	// optional index array
-	unsigned int indices[] =
-	{  
-		0, 1, 2
-	};
 
 	vao = 0;
 	glGenVertexArrays( 1, &vao );
@@ -275,12 +297,8 @@ void Rasterizer::initBuffers() {
 	// vertex texture coordinates
 	glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE, vertex_stride, ( void* )( sizeof( float ) * 3 ) );
 	glEnableVertexAttribArray( 1 );
-	ebo = 0; // optional buffer of indices
-	glGenBuffers( 1, &ebo );
-	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebo );
-	glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof( indices ), indices, GL_STATIC_DRAW );
 	*/
-	/*
+	
 	this->vao = 0; ///VAO BUFFER = popisuje konfiguraci bufferů, které budou v rámci objektu vystupovat
 	glGenVertexArrays( 1, &vao );
 	glBindVertexArray( vao ); //timhle se ten buffer nabinduje k vao
@@ -288,20 +306,20 @@ void Rasterizer::initBuffers() {
 	this->vbo = 0;	//vertex buffer
 	glGenBuffers( 1, &vbo ); // generate vertex buffer object (one of OpenGL objects) and get the unique ID corresponding to that buffer
 	glBindBuffer( GL_ARRAY_BUFFER, vbo ); // bind the newly created buffer to the GL_ARRAY_BUFFER target
-	glBufferData( GL_ARRAY_BUFFER, this->scene->getVerteciesCount() * sizeof(this->scene->getVerticies()[0]), this->scene->getVerticies(), GL_STATIC_DRAW ); // copies the previously defined vertex data into the buffer's memory	//prakticky memcpy, opengl neví nic o tom, jak jsou data zorganizovana
-																				   // vertex position
-	glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, scene->getVertexStride(), 0 );	//popiseme, jaka je struktura toho vertex bufferu = na nultem indexu jsou veci velikosti 3 (x, y, z) typu float a nechceme je normalizovat, stride je pocet bytu, ktere lezi mezi dvema nasledujicimi zaznamy | posledni je offset od zacatku pole
-	glEnableVertexAttribArray( 0 );	//kazdy index, ktery popiseme, musime zenablovat
-									// vertex texture coordinates		//popisujeme strukturu texturovacich souradnic
-	glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE, scene->getVertexStride(), ( void* )( sizeof( float ) * 3 ) );
-	glEnableVertexAttribArray( 1 );
 
-	this->ebo = 0; // optional buffer of indices			//element array buffer, pry to neni dobra cesta, nemusim ho vytvaret
-	glGenBuffers( 1, &ebo );
-	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebo );
-	glBufferData( GL_ELEMENT_ARRAY_BUFFER, this->scene->getIndiciesCount() * sizeof(this->scene->getIndicies()[0]), this->scene->getIndicies(), GL_STATIC_DRAW );
+	auto vertices = this->scene->getVerticies();
+	float* v = (float*)vertices.data();
+
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(MyVertex), &vertices.front(), GL_STATIC_DRAW);
+	// vertex position
+	glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, scene->getVertexStride(), 0 );	//popiseme, jaka je struktura toho vertex bufferu = na nultem indexu jsou veci velikosti 3 (x, y, z) typu float a nechceme je normalizovat, stride je pocet bytu, ktere lezi mezi dvema nasledujicimi zaznamy | posledni je offset od zacatku pole
+	glEnableVertexAttribArray( 0 );	
+	// vertex texture coordinates		
+	glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE, scene->getVertexStride(), ( void* )( sizeof( float ) * 3 ) ); //popisujeme strukturu texturovacich souradnic
+	glEnableVertexAttribArray( 1 ); //kazdy index, ktery popiseme, musime zenablovat
+
 	//vbo a ebo ulozeno ve vao	
-	*/
+	
 }
 
 void Rasterizer::mainLoop() {
@@ -313,10 +331,10 @@ void Rasterizer::mainLoop() {
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT ); // state using function
 
 		glBindVertexArray( vao );
-		//glDrawArrays( GL_TRIANGLES, 0, 3 );
-		glDrawArrays( GL_POINTS, 0, 3 );
-		glDrawArrays( GL_LINE_LOOP, 0, 3 );
-		glDrawElements( GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0 ); // optional - render from an index buffer
+		//glDrawArrays( GL_TRIANGLES, 0, this->scene->getVerticies().size() ); //??
+		//glDrawArrays( GL_POINTS, 0, 6 );
+		glDrawArrays( GL_LINE_LOOP, 0, this->scene->getVerticies().size() );
+		//glDrawElements( GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0 ); // optional - render from an index buffer
 
 		glfwSwapBuffers( window );
 		glfwPollEvents();

@@ -251,10 +251,10 @@ int tutorial_1( const int width, const int height )
 
 void tutorial() {
 	//Rasterizer rastarizer( 640, 480, deg2rad( 45.0f ), Vector3( 200, 300, 400 ), Vector3( 0, 0, 40 ), 1.0f, 1000.0f );
-	Rasterizer rastarizer( 640, 480, deg2rad(45), Vector3( 10, 10, 10 ), Vector3( 0, 0, -10 ), 1.0f, 1000.0f );
+	Rasterizer rastarizer( 640, 480, deg2rad(30), Vector3( 0, 0, 5 ), Vector3( 0, 0, 0 ), 1.0f, 1000.0f );
 	rastarizer.initDevice();
 	rastarizer.initPrograms();
-	rastarizer.loadScene("D:\\prg\\cpp\\ComputerGraphics2\\data\\6887_allied_avenger.obj");
+	rastarizer.loadScene("D:\\prg\\cpp\\ComputerGraphics2\\data\\geosphere.obj");
 	rastarizer.initBuffers();
 	rastarizer.mainLoop();
 }
