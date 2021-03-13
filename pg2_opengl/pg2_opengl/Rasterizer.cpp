@@ -250,55 +250,7 @@ void Rasterizer::loadScene(std::string file_name) {
 	this->scene = std::make_shared<Scene>(file_name);
 }
 
-#include <iostream>
-
-
-/*
-0.00000000f, 0.00000000f, 1.00000000f, 0, 0,//1
-0.13795224f, 0.00000000f, 0.99043888f, 0, 0,//2
-0.04262958f, 0.13120039f, 0.99043888f, 0, 0,//3
-0.27326652f, 0.00000000f, 0.96193832f, 0, 0,//4
-0.18120807f, 0.13165538f, 0.97459245f, 0, 0,//5
-0.08444399f, 0.25989193f, 0.96193832f, 0, 0,//6
-*/
-void Rasterizer::initBuffers() {
-	/*
-	GLfloat vertices[] = {
-		0.00000000f, 0.00000000f, 1.00000000f, 0, 0,//1
-		0.13795224f, 0.00000000f, 0.99043888f, 0, 0,//2
-		0.04262958f, 0.13120039f, 0.99043888f, 0, 0,//3
-
-		0.13795224f, 0.00000000f, 0.99043888f, 0, 0,//2
-		0.27326652f, 0.00000000f, 0.96193832f, 0, 0,//4
-		0.18120807f, 0.13165538f, 0.97459245f, 0, 0,//5
-
-		0.13795224f, 0.00000000f, 0.99043888f, 0, 0,//2
-		0.04262958f, 0.13120039f, 0.99043888f, 0, 0,//3
-		0.18120807f, 0.13165538f, 0.97459245f, 0, 0,//5
-
-		0.04262958f, 0.13120039f, 0.99043888f, 0, 0,//3
-		0.18120807f, 0.13165538f, 0.97459245f, 0, 0,//5
-		0.08444399f, 0.25989193f, 0.96193832f, 0, 0,//6
-
-	};
-	const int no_vertices = 12;
-	const int vertex_stride = sizeof( vertices ) / no_vertices;	
-
-	vao = 0;
-	glGenVertexArrays( 1, &vao );
-	glBindVertexArray( vao );
-	vbo = 0;
-	glGenBuffers( 1, &vbo ); // generate vertex buffer object (one of OpenGL objects) and get the unique ID corresponding to that buffer
-	glBindBuffer( GL_ARRAY_BUFFER, vbo ); // bind the newly created buffer to the GL_ARRAY_BUFFER target
-	glBufferData( GL_ARRAY_BUFFER, sizeof( vertices ), vertices, GL_STATIC_DRAW ); // copies the previously defined vertex data into the buffer's memory
-																				   // vertex position
-	glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, vertex_stride, 0 );
-	glEnableVertexAttribArray( 0 );
-	// vertex texture coordinates
-	glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE, vertex_stride, ( void* )( sizeof( float ) * 3 ) );
-	glEnableVertexAttribArray( 1 );
-	*/
-	
+void Rasterizer::initBuffers() {	
 	this->vao = 0; ///VAO BUFFER = popisuje konfiguraci bufferů, které budou v rámci objektu vystupovat
 	glGenVertexArrays( 1, &vao );
 	glBindVertexArray( vao ); //timhle se ten buffer nabinduje k vao
@@ -308,16 +260,13 @@ void Rasterizer::initBuffers() {
 	glBindBuffer( GL_ARRAY_BUFFER, vbo ); // bind the newly created buffer to the GL_ARRAY_BUFFER target
 
 	auto vertices = this->scene->getVerticies();
-	float* v = (float*)vertices.data();
-
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(MyVertex), &vertices.front(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(MyVertex), vertices.data(), GL_STATIC_DRAW);
 	// vertex position
 	glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, scene->getVertexStride(), 0 );	//popiseme, jaka je struktura toho vertex bufferu = na nultem indexu jsou veci velikosti 3 (x, y, z) typu float a nechceme je normalizovat, stride je pocet bytu, ktere lezi mezi dvema nasledujicimi zaznamy | posledni je offset od zacatku pole
 	glEnableVertexAttribArray( 0 );	
 	// vertex texture coordinates		
 	glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE, scene->getVertexStride(), ( void* )( sizeof( float ) * 3 ) ); //popisujeme strukturu texturovacich souradnic
 	glEnableVertexAttribArray( 1 ); //kazdy index, ktery popiseme, musime zenablovat
-
 	//vbo a ebo ulozeno ve vao	
 	
 }
