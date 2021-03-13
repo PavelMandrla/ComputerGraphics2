@@ -72,7 +72,8 @@ bool Rasterizer::check_gl(const GLenum error) {
 	return true;
 }
 
-Matrix4x4 Rasterizer::getM() {
+//	✔
+Matrix4x4 Rasterizer::getM() {	
 	return Matrix4x4 (	//TODO ??shift?? ??scale?? ??shear?? ??ALL??
 		1, 0, 0, 0,
 		0, 1, 0, 0,
@@ -83,36 +84,49 @@ Matrix4x4 Rasterizer::getM() {
 
 Matrix4x4 Rasterizer::getV() {
 	Vector3 z_e = (this->viewFrom - this->viewAt) / (this->viewFrom - this->viewAt).L2Norm();
-	Vector3 x_e = Vector3{ 0,0,1 }.CrossProduct(z_e);
+
+	Vector3 x_e = Vector3{ 0,1,0 }.CrossProduct(z_e);
 	Vector3 y_e = z_e.CrossProduct(x_e);
 
-	return Matrix4x4(
+	return Matrix4x4::EuclideanInverse( Matrix4x4(
 		x_e.x,	y_e.x,	z_e.x,	viewFrom.x,
 		x_e.y,	y_e.y,	z_e.y,	viewFrom.y,
 		x_e.z,	y_e.z,	z_e.z,	viewFrom.z,
 		0,		0,		0,		1.0f
-	);
+	));
 }
 
 Matrix4x4 Rasterizer::getP() {
-	float n = 1;	//??
-	float f = 10;	//??
-
-	auto fovX = 2 * atan(tan(this->fovY * 0.5) * ((float)this->width/(float)this->height));
+	float n = 1;
+	float f = 1000;
 
 	float a = (n + f) / (n - f);
 	float b = (2 * n * f) / (n - f);
 
-	return Matrix4x4(
-		1.0f / tan(fovX / 2),	0,						0,	0,
-		0,						1.0f / tan(fovY / 2),	0,	0,		//	+/-
-		0,						0,						a,	b,
-		0,						0,						1,	0
+	auto M = Matrix4x4(
+		n,	0,	0,	0,
+		0,	n,	0,	0,
+		0,	0,	a,	b,
+		0,	0,	-1,	0
 	);
+
+	auto fovX = 2 * atan(tan(this->fovY * 0.5) * ((float)this->width/(float)this->height));
+	float w = 2*n*tan(fovX / 2);
+	float h = 2*n*tan(fovY / 2);
+
+	auto N = Matrix4x4(
+		2/w,	0,		0,	0,
+		0,		2/h,	0,	0,
+		0,		0,		1,	0,
+		0,		0,		0,	1
+	);
+
+	return N * M;	
 }
 
 Matrix4x4 Rasterizer::getMVP() {
-	return this->getM() * this->getV() * this->getP();
+	//return this->getM() * this->getV() * this->getP();
+	return getP() * getV() * getM() ;
 }
 
 Rasterizer::Rasterizer(int width, int height, float fovY, Vector3 viewFrom, Vector3 viewAt, float something, float somethingElse) {
@@ -223,7 +237,7 @@ void Rasterizer::initPrograms() {	///řeší vytvoření vertex a fragment shade
 	glUseProgram( shader_program );
 
 	//TODO - asi remove
-	//glPointSize( 10.0f );	
+	glPointSize( 10.0f );	
 	glLineWidth( 2.0f );
 	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 }
@@ -236,9 +250,9 @@ void Rasterizer::initBuffers() {
 	/*
 	GLfloat vertices[] =
 	{
-		-0.9f, 0.9f, 0.0f,  0.0f, 1.0f, // vertex 0 : p0.x, p0.y, p0.z, t0.u, t0.v
-		0.9f, 0.9f, 0.0f,   1.0f, 1.0f, // vertex 1 : p1.x, p1.y, p1.z, t1.u, t1.v
-		0.0f, -0.9f, 0.0f,  0.5f, 0.0f  // vertex 2 : p2.x, p2.y, p2.z, t2.u, t2.v
+		1.6f, 0.0f, -4.0f,  0.0f, 1.0f, // vertex 0 : p0.x, p0.y, p0.z, t0.u, t0.v
+		1.2f, 0.1f, -4.0f,   1.0f, 1.0f, // vertex 1 : p1.x, p1.y, p1.z, t1.u, t1.v
+		1.8f, 0.4f, -3.0f,  0.5f, 0.0f  // vertex 2 : p2.x, p2.y, p2.z, t2.u, t2.v
 	};
 	const int no_vertices = 3;
 	const int vertex_stride = sizeof( vertices ) / no_vertices;	
@@ -266,8 +280,7 @@ void Rasterizer::initBuffers() {
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebo );
 	glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof( indices ), indices, GL_STATIC_DRAW );
 	*/
-	
-	
+	/*
 	this->vao = 0; ///VAO BUFFER = popisuje konfiguraci bufferů, které budou v rámci objektu vystupovat
 	glGenVertexArrays( 1, &vao );
 	glBindVertexArray( vao ); //timhle se ten buffer nabinduje k vao
@@ -288,11 +301,13 @@ void Rasterizer::initBuffers() {
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebo );
 	glBufferData( GL_ELEMENT_ARRAY_BUFFER, this->scene->getIndiciesCount() * sizeof(this->scene->getIndicies()[0]), this->scene->getIndicies(), GL_STATIC_DRAW );
 	//vbo a ebo ulozeno ve vao	
-	
+	*/
 }
 
 void Rasterizer::mainLoop() {
-	SetMatrix4x4(this->shader_program, (GLfloat*) getMVP().data(), "myMat");
+	glDisable( GL_DEPTH_TEST ); // zrusi pouziti z-bufferu, vykresleni se provede bez ohledu na poradi fragmentu z hlediska jejich pseudohloubky
+	glDisable( GL_CULL_FACE ); // zrusi zahazovani opacne orientovanych ploch
+	SetMatrix4x4(this->shader_program, (GLfloat*) getMVP().data(), "mvp");
 	while (!glfwWindowShouldClose(this->window)) {		
 		glClearColor( 0.2f, 0.3f, 0.3f, 1.0f ); // state setting function
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT ); // state using function

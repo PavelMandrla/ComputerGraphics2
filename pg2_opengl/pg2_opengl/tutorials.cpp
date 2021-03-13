@@ -250,7 +250,8 @@ int tutorial_1( const int width, const int height )
 }
 
 void tutorial() {
-	Rasterizer rastarizer( 640, 480, deg2rad( 20.0f ), Vector3( 200, 300, 400 ), Vector3( 0, 0, 30 ), 1.0f, 1000.0f ); // #smokeWeedEveryDay
+	//Rasterizer rastarizer( 640, 480, deg2rad( 45.0f ), Vector3( 200, 300, 400 ), Vector3( 0, 0, 40 ), 1.0f, 1000.0f );
+	Rasterizer rastarizer( 640, 480, deg2rad(45), Vector3( 10, 10, 10 ), Vector3( 0, 0, -10 ), 1.0f, 1000.0f );
 	rastarizer.initDevice();
 	rastarizer.initPrograms();
 	rastarizer.loadScene("D:\\prg\\cpp\\ComputerGraphics2\\data\\6887_allied_avenger.obj");
