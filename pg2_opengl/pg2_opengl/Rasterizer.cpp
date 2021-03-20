@@ -94,20 +94,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	if (action == GLFW_PRESS || action == GLFW_REPEAT) {
 		auto rasterizer = reinterpret_cast<Rasterizer*>(glfwGetWindowUserPointer(window));
 		auto camera = rasterizer->getCamera();
-		switch (key) {
-			case GLFW_KEY_W:
-				camera->moveForward();
-				break;
-			case GLFW_KEY_S:
-				camera->moveBackward();
-				break;
-			case GLFW_KEY_A:
-				camera->moveLeft();
-				break;
-			case GLFW_KEY_D:
-				camera->moveRight();
-				break;
-		}
+		if (key == GLFW_KEY_W) camera->moveForward();
+		if (key == GLFW_KEY_S) camera->moveBackward();
+		if (key == GLFW_KEY_A) camera->moveLeft();
+		if (key == GLFW_KEY_D) camera->moveRight();
 	}
 
 }
