@@ -73,72 +73,8 @@ bool Rasterizer::check_gl(const GLenum error) {
 	return true;
 }
 
-//	✔
-Matrix4x4 Rasterizer::getM() {	
-	return Matrix4x4 (	//TODO ??shift?? ??scale?? ??shear?? ??ALL??
-		1, 0, 0, 0,
-		0, 1, 0, 0,
-		0, 0, 1, 0,
-		0, 0, 0, 1
-	);
-}
-
-Matrix4x4 Rasterizer::getV() {
-	Vector3 z_e = (this->viewFrom - this->viewAt) / (this->viewFrom - this->viewAt).L2Norm();
-
-	Vector3 x_e = Vector3{ 0,1,0 }.CrossProduct(z_e);
-	Vector3 y_e = z_e.CrossProduct(x_e);
-
-	return Matrix4x4::EuclideanInverse( Matrix4x4(
-		x_e.x,	y_e.x,	z_e.x,	viewFrom.x,
-		x_e.y,	y_e.y,	z_e.y,	viewFrom.y,
-		x_e.z,	y_e.z,	z_e.z,	viewFrom.z,
-		0,		0,		0,		1.0f
-	));
-}
-
-Matrix4x4 Rasterizer::getP() {
-	float n = 1;
-	float f = 1000;
-
-	float a = (n + f) / (n - f);
-	float b = (2 * n * f) / (n - f);
-
-	auto M = Matrix4x4(
-		n,	0,	0,	0,
-		0,	n,	0,	0,
-		0,	0,	a,	b,
-		0,	0,	-1,	0
-	);
-
-	float aspect = (float)this->width / (float)this->height;
-
-	auto fovX = 2 * atan(aspect *  tan(this->fovY / 2.0f));
-	
-	float w = 2*n*tan(fovX / 2);
-	float h = 2*n*tan(fovY / 2);
-
-	auto N = Matrix4x4(
-		2/w,	0,		0,	0,
-		0,		2/h,	0,	0,
-		0,		0,		1,	0,
-		0,		0,		0,	1
-	);
-
-	return N * M;	
-}
-
-Matrix4x4 Rasterizer::getMVP() {
-	//return this->getM() * this->getV() * this->getP();
-	return getP() * getV() * getM() ;
-}
-
-Rasterizer::Rasterizer(int width, int height, float fovY, Vector3 viewFrom, Vector3 viewAt, float something, float somethingElse) {
-	this->width = width;
-	this->height = height;
-	this->fovY = fovY;
-	this->viewFrom = viewFrom;
-	this->viewAt = viewAt;
+Rasterizer::Rasterizer(int width, int height, float fovY, Vector3 viewFrom, Vector3 viewAt) {
+	this->camera = std::make_shared<Camera>(width, height, fovY, viewFrom, viewAt);
 }
 
 Rasterizer::~Rasterizer() {
@@ -183,7 +119,7 @@ int Rasterizer::initDevice() {
 	glfwWindowHint( GLFW_RESIZABLE, GL_TRUE );
 	glfwWindowHint( GLFW_DOUBLEBUFFER, GL_TRUE );
 
-	this->window = glfwCreateWindow( this->width, this->height, "PG2 OpenGL", nullptr, nullptr );
+	this->window = glfwCreateWindow( camera->getWidth(), camera->getHeight(), "PG2 OpenGL", nullptr, nullptr );
 	if (!this->window) {
 		glfwTerminate();
 		return EXIT_FAILURE;
@@ -209,7 +145,7 @@ int Rasterizer::initDevice() {
 	glEnable( GL_MULTISAMPLE );
 
 	// map from the range of NDC coordinates <-1.0, 1.0>^2 to <0, width> x <0, height>
-	glViewport( 0, 0, width, height );
+	glViewport(0, 0, camera->getWidth(), camera->getHeight());
 	// GL_LOWER_LEFT (OpenGL) or GL_UPPER_LEFT (DirectX, Windows) and GL_NEGATIVE_ONE_TO_ONE or GL_ZERO_TO_ONE
 	glClipControl( GL_UPPER_LEFT, GL_NEGATIVE_ONE_TO_ONE );
 }
@@ -274,7 +210,7 @@ void Rasterizer::initBuffers() {
 void Rasterizer::mainLoop() {
 	glDisable( GL_DEPTH_TEST ); // zrusi pouziti z-bufferu, vykresleni se provede bez ohledu na poradi fragmentu z hlediska jejich pseudohloubky
 	glDisable( GL_CULL_FACE ); // zrusi zahazovani opacne orientovanych ploch
-	SetMatrix4x4(this->shader_program, (GLfloat*) getMVP().data(), "mvp");
+	SetMatrix4x4(this->shader_program, (GLfloat*) camera->getMVP().data(), "mvp");
 	while (!glfwWindowShouldClose(this->window)) {		
 		glClearColor( 0.2f, 0.3f, 0.3f, 1.0f ); // state setting function
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT ); // state using function

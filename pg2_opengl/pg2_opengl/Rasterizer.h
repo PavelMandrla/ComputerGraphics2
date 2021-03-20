@@ -4,12 +4,10 @@
 #include "Scene.h"
 #include <memory>
 #include "matrix4x4.h";
+#include "camera.h"
 
 class Rasterizer {
 private:
-	int width, height;
-	float fovY;
-	Vector3 viewFrom, viewAt;
 
 	char* LoadShader(const char* file_name);
 		
@@ -18,14 +16,8 @@ private:
 	bool check_gl(const GLenum error);
 
 	std::shared_ptr<Scene> scene;
+	std::shared_ptr<Camera> camera;
 
-	Matrix4x4 getM();
-
-	Matrix4x4 getV();
-
-	Matrix4x4 getP();
-
-	Matrix4x4 getMVP();
 
 	//INIT DEVICE
 	GLFWwindow* window;
@@ -36,10 +28,10 @@ private:
 	GLuint shader_program;
 
 	//INIT BUFFERS
-	GLuint vao, vbo, ebo;
+	GLuint vao, vbo;
 
 public:
-	Rasterizer(int width, int height, float fovY, Vector3 viewFrom, Vector3 viewAt, float something, float somethingElse); //TODO -> fix something and somethingElse params
+	Rasterizer(int width, int height, float fovY, Vector3 viewFrom, Vector3 viewAt);
 
 	~Rasterizer();
 

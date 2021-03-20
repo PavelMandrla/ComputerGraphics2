@@ -3,6 +3,7 @@
 
 #include "vector3.h"
 #include "matrix3x3.h"
+#include "matrix4x4.h"
 
 /*! \class Camera
 \brief A simple pin-hole camera.
@@ -11,36 +12,37 @@
 \version 1.0
 \date 2018-2019
 */
-class Camera
-{
-public:
-	Camera() { }
-
-	Camera( const int width, const int height, const float fov_y,
-		const Vector3 view_from, const Vector3 view_at );
-
-	Vector3 view_from() const;
-	Matrix3x3 M_c_w() const;
-	float focal_length() const;
-
-	void set_fov_y( const float fov_y );
-
-	void Update();
-
-	void MoveForward( const float dt );
-
+class Camera {
 private:
-	int width_{ 640 }; // image width (px)
-	int height_{ 480 };  // image height (px)
-	float fov_y_{ 0.785f }; // vertical field of view (rad)
+	int width, height;
+	float fovX, fovY;
+	float tNear, tFar;
+
+	double yaw, pitch;
+	Vector3 viewFrom;
+
+	void calculateFovX();
+
+	Matrix4x4 getM();
+
+	Matrix4x4 getV();
+
+	Matrix4x4 getP();
+public:
+	Camera(int width, int height, float fovY, Vector3 viewFrom, Vector3 viewAt, float tNear = 1.0f, float tFar = 1000.0f);
 	
-	Vector3 view_from_; // ray origin or eye or O
-	Vector3 view_at_; // target T
-	Vector3 up_{ Vector3( 0.0f, 0.0f, 1.0f ) }; // up vector
+	Vector3 getViewFrom() { return this->viewFrom; }
 
-	float f_y_{ 1.0f }; // focal lenght (px)
+	Vector3 getViewDir();
 
-	Matrix3x3 M_c_w_; // transformation matrix from CS -> WS	
+	Vector3 getViewAt() { return this->getViewFrom() + this->getViewDir(); }
+
+	Matrix4x4 getMVP();
+
+	int getWidth() { return this->width; }
+
+	int getHeight() { return this->height; }
+
 };
 
 #endif

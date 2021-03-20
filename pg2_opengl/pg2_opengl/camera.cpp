@@ -1,64 +1,87 @@
 #include "pch.h"
 #include "camera.h"
 
-Camera::Camera( const int width, const int height, const float fov_y,
-	const Vector3 view_from, const Vector3 view_at )
-{
-	width_ = width;
-	height_ = height;
-	fov_y_ = fov_y;
+Camera::Camera(int width, int height, float fovY, Vector3 viewFrom, Vector3 viewAt, float tNear, float tFar) {
+	this->width = width;
+	this->height = height;
 
-	view_from_ = view_from;
-	view_at_ = view_at;
+	float aspect = (float) this->width / (float) this->height;
+	this->fovY = fovY;
+	this->fovX = 2 * atan(aspect *  tan(this->fovY / 2.0f));
 
-	// TODO compute focal lenght based on the vertical field of view and the camera resolution
+	this->viewFrom = viewFrom;
+	auto viewDir = viewAt - viewFrom;
+	viewDir.Normalize();
+
+	this->yaw = atan2(viewDir.y, viewDir.x);
+	this->pitch = asin(-viewDir.z);
+
+	this->tNear = tNear;
+	this->tFar = tFar;
+}
+
+void Camera::calculateFovX() {
+	float aspect = (float) this->width / (float) this->height;
+	this->fovX = 2 * atan(aspect *  tan(this->fovY / 2.0f));
+}
+
+Matrix4x4 Camera::getM() {
+	return Matrix4x4 (
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1
+	);
+}
+
+Matrix4x4 Camera::getV() {
+	Vector3 z_e = this->getViewFrom() - this->getViewAt();
+	z_e.Normalize();
+	Vector3 x_e = Vector3{ 0,1,0 }.CrossProduct(z_e);
+	Vector3 y_e = z_e.CrossProduct(x_e);
+
+	return Matrix4x4::EuclideanInverse( Matrix4x4(
+		x_e.x,	y_e.x,	z_e.x,	viewFrom.x,
+		x_e.y,	y_e.y,	z_e.y,	viewFrom.y,
+		x_e.z,	y_e.z,	z_e.z,	viewFrom.z,
+		0,		0,		0,		1.0f
+	));
+}
+
+Matrix4x4 Camera::getP() {
+	float a = (this->tNear + this->tFar) / (this->tNear - this->tFar);
+	float b = (2 * this->tNear * this->tFar) / (this->tNear - this->tFar);
 	
-	// TODO build M_c_w_ matrix
+	float w = 2 * this->tNear * tan(this->fovX / 2);
+	float h = 2 * this->tNear * tan(this->fovY / 2);
 
-	Update();
+	auto M = Matrix4x4(
+		this->tNear,	0,				0,	0,
+		0,				this->tNear,	0,	0,
+		0,				0,				a,	b,
+		0,				0,				-1,	0
+	);
+
+	auto N = Matrix4x4(
+		2/w,	0,		0,	0,
+		0,		2/h,	0,	0,
+		0,		0,		1,	0,
+		0,		0,		0,	1
+	);
+
+	return N * M;
 }
 
-Vector3 Camera::view_from() const
-{
-	return view_from_;
+Matrix4x4 Camera::getMVP() {
+	return this->getP() * this->getV() * this->getM();
 }
 
-Matrix3x3 Camera::M_c_w() const
-{
-	return M_c_w_;
-}
-
-float Camera::focal_length() const
-{
-	return f_y_;
-}
-
-void Camera::set_fov_y( const float fov_y )
-{
-	assert( fov_y > 0.0 );
-
-	fov_y_ = fov_y;
-}
-
-void Camera::Update()
-{
-	f_y_ = height_ / ( 2.0f * tanf( fov_y_ * 0.5f ) );
-
-	Vector3 z_c = view_from_ - view_at_;
-	z_c.Normalize();
-	Vector3 x_c = up_.CrossProduct( z_c );
-	x_c.Normalize();
-	Vector3 y_c = z_c.CrossProduct( x_c );
-	y_c.Normalize();
-	M_c_w_ = Matrix3x3( x_c, y_c, z_c );
-}
-
-void Camera::MoveForward( const float dt )
-{
-	Vector3 ds = view_at_ - view_from_;
-	ds.Normalize();
-	ds *= dt;
-
-	view_from_ += ds;
-	view_at_ += ds;
+Vector3 Camera::getViewDir() {
+	auto result = Vector3{
+		float(cos(pitch) * cos(yaw)),
+		float(sin(pitch) * sin(yaw)),
+		float(-sin(pitch))
+	};
+	result.Normalize();
+	return result;
 }
