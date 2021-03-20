@@ -61,7 +61,7 @@ GLint Rasterizer::CheckShader(const GLenum shader) {
 	return status;
 }
 
-/* OpenGL check state */
+// OpenGL check state
 bool Rasterizer::check_gl(const GLenum error) {
 	if ( error != GL_NO_ERROR ) {
 		//const GLubyte * error_str;
@@ -71,14 +71,54 @@ bool Rasterizer::check_gl(const GLenum error) {
 		return false;
 	}
 	return true;
+} 
+
+// glfw callback
+void glfw_callback_1( const int error, const char * description ) {
+	printf( "GLFW Error (%d): %s\n", error, description );
 }
+
+// OpenGL messaging callback
+void GLAPIENTRY gl_callback_1( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * message, const void * user_param ) {
+	printf( "GL %s type = 0x%x, severity = 0x%x, message = %s\n",
+		( type == GL_DEBUG_TYPE_ERROR ? "Error" : "Message" ),
+		type, severity, message );
+}
+
+// invoked when window is resized
+void framebuffer_resize_callback_1( GLFWwindow * window, int width, int height ) {
+	glViewport( 0, 0, width, height );
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+		auto rasterizer = reinterpret_cast<Rasterizer*>(glfwGetWindowUserPointer(window));
+		auto camera = rasterizer->getCamera();
+		switch (key) {
+			case GLFW_KEY_W:
+				camera->moveForward();
+				break;
+			case GLFW_KEY_S:
+				camera->moveBackward();
+				break;
+			case GLFW_KEY_A:
+				camera->moveLeft();
+				break;
+			case GLFW_KEY_D:
+				camera->moveRight();
+				break;
+		}
+	}
+
+}
+
 
 Rasterizer::Rasterizer(int width, int height, float fovY, Vector3 viewFrom, Vector3 viewAt) {
 	this->camera = std::make_shared<Camera>(width, height, fovY, viewFrom, viewAt);
 }
 
 Rasterizer::~Rasterizer() {
-	
+
 	glDeleteShader( vertex_shader );
 	glDeleteShader( fragment_shader );
 	glDeleteProgram( shader_program );
@@ -88,23 +128,6 @@ Rasterizer::~Rasterizer() {
 
 	glfwTerminate();
 	delete this->window;
-}
-
-/* glfw callback */
-void glfw_callback_1( const int error, const char * description ) {
-	printf( "GLFW Error (%d): %s\n", error, description );
-}
-
-/* OpenGL messaging callback */
-void GLAPIENTRY gl_callback_1( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * message, const void * user_param ) {
-	printf( "GL %s type = 0x%x, severity = 0x%x, message = %s\n",
-		( type == GL_DEBUG_TYPE_ERROR ? "Error" : "Message" ),
-		type, severity, message );
-}
-
-/* invoked when window is resized */
-void framebuffer_resize_callback_1( GLFWwindow * window, int width, int height ) {
-	glViewport( 0, 0, width, height );
 }
 
 int Rasterizer::initDevice() {
@@ -124,6 +147,10 @@ int Rasterizer::initDevice() {
 		glfwTerminate();
 		return EXIT_FAILURE;
 	}
+	glfwSetWindowUserPointer(this->window, reinterpret_cast<void*>(this));
+	glfwSetKeyCallback(this->window, key_callback);
+
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	glfwSetFramebufferSizeCallback( window, framebuffer_resize_callback_1 );
 	glfwMakeContextCurrent( window );
@@ -210,12 +237,14 @@ void Rasterizer::initBuffers() {
 void Rasterizer::mainLoop() {
 	glDisable( GL_DEPTH_TEST ); // zrusi pouziti z-bufferu, vykresleni se provede bez ohledu na poradi fragmentu z hlediska jejich pseudohloubky
 	glDisable( GL_CULL_FACE ); // zrusi zahazovani opacne orientovanych ploch
-	SetMatrix4x4(this->shader_program, (GLfloat*) camera->getMVP().data(), "mvp");
+	
 	while (!glfwWindowShouldClose(this->window)) {		
 		glClearColor( 0.2f, 0.3f, 0.3f, 1.0f ); // state setting function
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT ); // state using function
 
 		glBindVertexArray( vao );
+
+		SetMatrix4x4(this->shader_program, (GLfloat*) camera->getMVP().data(), "mvp");
 		//glDrawArrays( GL_TRIANGLES, 0, this->scene->getVerticies().size() ); //??
 		//glDrawArrays( GL_POINTS, 0, 6 );
 		glDrawArrays( GL_LINE_LOOP, 0, this->scene->getVerticies().size() );

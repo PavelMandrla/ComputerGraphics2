@@ -21,6 +21,8 @@ private:
 	double yaw, pitch;
 	Vector3 viewFrom;
 
+	float velocity;
+
 	void calculateFovX();
 
 	Matrix4x4 getM();
@@ -42,6 +44,18 @@ public:
 	int getWidth() { return this->width; }
 
 	int getHeight() { return this->height; }
+
+	float getVelocity() { return this->velocity;  }
+
+	void setVelocity(float velocity) { this->velocity = velocity; }
+
+	void moveForward();
+
+	void moveBackward();
+
+	void moveLeft();
+
+	void moveRight();
 
 };
 

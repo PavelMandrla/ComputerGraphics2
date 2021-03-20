@@ -18,6 +18,8 @@ Camera::Camera(int width, int height, float fovY, Vector3 viewFrom, Vector3 view
 
 	this->tNear = tNear;
 	this->tFar = tFar;
+
+	this->velocity = 1.0f;
 }
 
 void Camera::calculateFovX() {
@@ -84,4 +86,22 @@ Vector3 Camera::getViewDir() {
 	};
 	result.Normalize();
 	return result;
+}
+
+void Camera::moveForward() {
+	this->viewFrom += this->velocity * this->getViewDir();
+}
+
+void Camera::moveBackward() {
+	this->viewFrom -= this->velocity * this->getViewDir();
+}
+
+void Camera::moveLeft() {
+	auto moveDir = this->getViewDir().CrossProduct(Vector3{ 0,0,1 });
+	this->viewFrom += this->velocity * moveDir;
+}
+
+void Camera::moveRight() {
+	auto moveDir = this->getViewDir().CrossProduct(Vector3{ 0,0,1 });
+	this->viewFrom -= this->velocity * moveDir;
 }

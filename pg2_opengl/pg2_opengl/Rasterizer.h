@@ -18,7 +18,6 @@ private:
 	std::shared_ptr<Scene> scene;
 	std::shared_ptr<Camera> camera;
 
-
 	//INIT DEVICE
 	GLFWwindow* window;
 
@@ -57,5 +56,7 @@ public:
 	void initBuffers();
 
 	void mainLoop();
+
+	std::shared_ptr<Camera> getCamera() { return this->camera; };
 };
 
