@@ -105,3 +105,11 @@ void Camera::moveRight() {
 	auto moveDir = this->getViewDir().CrossProduct(Vector3{ 0,0,1 });
 	this->viewFrom -= this->velocity * moveDir;
 }
+
+void Camera::adjustYaw(double x) {
+	this->yaw -= float(x * M_PI / 100000.0f);
+}
+
+void Camera::adjustPitch(double y) {
+	this->pitch += float(y * M_PI / 100000.f);
+}

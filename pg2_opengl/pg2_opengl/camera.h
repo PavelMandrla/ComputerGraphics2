@@ -57,6 +57,10 @@ public:
 
 	void moveRight();
 
+	void adjustYaw(double x);
+
+	void adjustPitch(double y);
+
 };
 
 #endif

@@ -112,6 +112,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 }
 
+static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
+	printf("x:%f y:%f\n", xpos, ypos);
+	auto camera = reinterpret_cast<Rasterizer*>(glfwGetWindowUserPointer(window))->getCamera();
+	camera->adjustYaw(ypos);
+	camera->adjustPitch(xpos);
+
+	glfwSetCursorPos(window, 0, 0);
+}
 
 Rasterizer::Rasterizer(int width, int height, float fovY, Vector3 viewFrom, Vector3 viewAt) {
 	this->camera = std::make_shared<Camera>(width, height, fovY, viewFrom, viewAt);
@@ -149,6 +157,7 @@ int Rasterizer::initDevice() {
 	}
 	glfwSetWindowUserPointer(this->window, reinterpret_cast<void*>(this));
 	glfwSetKeyCallback(this->window, key_callback);
+	glfwSetCursorPosCallback(window, cursor_position_callback);
 
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 

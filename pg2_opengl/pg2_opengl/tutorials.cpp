@@ -250,12 +250,12 @@ int tutorial_1( const int width, const int height )
 }
 
 void tutorial() {
-	Rasterizer rastarizer( 640, 480, deg2rad( 45.0f ), Vector3( 200, 300, 400 ), Vector3( 0, 0, 40 ));
-	//Rasterizer rastarizer( 640, 480, deg2rad(30), Vector3( 1, 0, 5 ), Vector3( 0, 0, 0 ));
+	//Rasterizer rastarizer( 640, 480, deg2rad( 45.0f ), Vector3( 200, 300, 400 ), Vector3( 0, 0, 40 ));
+	Rasterizer rastarizer( 640, 480, deg2rad(30), Vector3( 1, 0, 5 ), Vector3( 0, 0, 0 ));
 	rastarizer.initDevice();
 	rastarizer.initPrograms();
-	rastarizer.loadScene("D:\\prg\\cpp\\ComputerGraphics2\\data\\6887_allied_avenger.obj");
-	//rastarizer.loadScene("D:\\prg\\cpp\\ComputerGraphics2\\data\\geosphere.obj");
+	//rastarizer.loadScene("D:\\prg\\cpp\\ComputerGraphics2\\data\\6887_allied_avenger.obj");
+	rastarizer.loadScene("D:\\prg\\cpp\\ComputerGraphics2\\data\\geosphere.obj");
 	rastarizer.initBuffers();
 	rastarizer.mainLoop();
 }
