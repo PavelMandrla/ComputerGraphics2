@@ -4,6 +4,8 @@
 #include "Rasterizer.h"
 #include "mymath.h"
 
+#include "texture.h"
+
 /* OpenGL check state */
 bool check_gl( const GLenum error )
 {
@@ -249,13 +251,31 @@ int tutorial_1( const int width, const int height )
 	return EXIT_SUCCESS;
 }
 
+void radTest() {
+	Texture3f background("D:\\prg\\cpp\\ComputerGraphics2\\data\\cannon_4k.exr");
+	Texture3f result(64, 32);
+
+	for (int x = 0; x < result.width(); x++) {
+		float phi = float(x) * 2.0f * M_PI / float(result.width());
+		for (int y = 0; y < result.height(); y++) {
+			float theta = float(y) * M_PI / float(result.height());
+
+			float u = phi / (2 * M_PI);
+			float v = theta / (M_PI);
+			result.data()[size_t(x) + size_t(y) * size_t(result.width())] = background.texel(u, v);
+		}
+	}
+	result.Save("D:\\prg\\cpp\\save.exr");
+}
+
 void tutorial() {
+
 	//Rasterizer rastarizer( 640, 480, deg2rad( 45.0f ), Vector3( 200, 300, 400 ), Vector3( 0, 0, 40 ));
 	Rasterizer rastarizer( 640, 480, deg2rad(30), Vector3( 1, 0, 5 ), Vector3( 0, 0, 0 ));
 	rastarizer.initDevice();
 	rastarizer.initPrograms();
 	//rastarizer.loadScene("D:\\prg\\cpp\\ComputerGraphics2\\data\\6887_allied_avenger.obj");
-	rastarizer.loadScene("D:\\prg\\cpp\\ComputerGraphics2\\data\\geosphere.obj", "D:\\prg\\cpp\\ComputerGraphics2\\data\\small_rural_road_02_4k.hdr");
+	rastarizer.loadScene("D:\\prg\\cpp\\ComputerGraphics2\\data\\geosphere.obj", "D:\\prg\\cpp\\ComputerGraphics2\\data\\cannon_4k.exr");
 	rastarizer.initBuffers();
 	rastarizer.mainLoop();
 }

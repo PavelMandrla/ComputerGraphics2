@@ -3,7 +3,7 @@
 #include "objloader.h"
 
 Scene::Scene(std::string& file_name, std::string& background_file) {
-	this->background = SphericalMap(background_file);
+	this->background = std::make_shared<Texture3f>(background_file);
 
 	const int no_surfaces = LoadOBJ( file_name.c_str(), surfaces_, materials_ );
 
@@ -40,18 +40,21 @@ Scene::Scene(std::string& file_name, std::string& background_file) {
 	this->vertex_stride = sizeof(MyVertex);
 }
 
-Texture3f Scene::getIrradianceMap() {
-	
-	Texture3f result(64, 32);
-	/*
-	for (int x = 0; x < result.width(); x++) {
-		float phi = float(x * 2 * M_PI) / float(result.width() - 1);
-		for (int y = 0; y < result.height(); y++) {
-			float theta = float(y * M_PI) / float(result.height() - 1) - M_PI_2;
+Texture3f Scene::getIrradianceMap(int width, int height) {
+	Texture3f result(width, height);
 
-			result.data()[size_t(x) + size_t(y) * size_t(result.width()) = this->background.getBackgroundColor();
+	for (int x = 0; x < result.width(); x++) {
+		float phi = float(x) * 2.0f * M_PI / float(result.width());
+		for (int y = 0; y < result.height(); y++) {
+			float theta = float(y) * M_PI / float(result.height());
+
+			float u = phi / (2 * M_PI);
+			float v = theta / (M_PI);
+
+			result.data()[size_t(x) + size_t(y) * size_t(result.width())] = this->background->texel(u, v);
 		}
 	}
-	*/
+	//result.Save("D:\\prg\\cpp\\save_test.exr");
+	
 	return result;
 }

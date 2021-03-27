@@ -258,6 +258,8 @@ void Rasterizer::initBuffers() {
 void Rasterizer::mainLoop() {
 	glEnable( GL_DEPTH_TEST ); // zrusi pouziti z-bufferu, vykresleni se provede bez ohledu na poradi fragmentu z hlediska jejich pseudohloubky
 	glEnable( GL_CULL_FACE ); // zrusi zahazovani opacne orientovanych ploch
+
+	this->scene->getIrradianceMap(64, 32);
 	
 	while (!glfwWindowShouldClose(this->window)) {		
 		glClearColor( 0.2f, 0.3f, 0.3f, 1.0f ); // state setting function

@@ -22,7 +22,7 @@ private:
 
 	int vertex_stride;
 
-	SphericalMap background;
+	std::shared_ptr<Texture3f> background;
 
 public:
 	Scene(std::string &file_name, std::string &background_file);
@@ -31,6 +31,6 @@ public:
 
 	int getVertexStride() { return this->vertex_stride; };
 
-	Texture3f getIrradianceMap(); //TODO
+	Texture3f getIrradianceMap(int width, int height);
 };
 
