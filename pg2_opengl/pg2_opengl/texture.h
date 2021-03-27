@@ -24,8 +24,7 @@ output.Save( "denoised.exr" );
 */
 
 template <class T, FREE_IMAGE_TYPE F>
-class Texture
-{
+class Texture {
 public:
 	Texture( const int width, const int height )
 	{

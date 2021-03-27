@@ -255,7 +255,7 @@ void tutorial() {
 	rastarizer.initDevice();
 	rastarizer.initPrograms();
 	//rastarizer.loadScene("D:\\prg\\cpp\\ComputerGraphics2\\data\\6887_allied_avenger.obj");
-	rastarizer.loadScene("D:\\prg\\cpp\\ComputerGraphics2\\data\\geosphere.obj");
+	rastarizer.loadScene("D:\\prg\\cpp\\ComputerGraphics2\\data\\geosphere.obj", "D:\\prg\\cpp\\ComputerGraphics2\\data\\small_rural_road_02_4k.hdr");
 	rastarizer.initBuffers();
 	rastarizer.mainLoop();
 }

@@ -41,6 +41,10 @@ public:
 
 	Matrix4x4 getMVP();
 
+	Matrix4x4 getMV();
+
+	Matrix4x4 getMVn();
+
 	int getWidth() { return this->width; }
 
 	int getHeight() { return this->height; }

@@ -128,6 +128,9 @@ Rasterizer::~Rasterizer() {
 	delete this->window;
 }
 
+void Rasterizer::generateIrradianceMap() {
+}
+
 int Rasterizer::initDevice() {
 	glfwSetErrorCallback( glfw_callback_1 );
 
@@ -208,8 +211,8 @@ void Rasterizer::initPrograms() {	///řeší vytvoření vertex a fragment shade
 	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 }
 
-void Rasterizer::loadScene(std::string file_name) {
-	this->scene = std::make_shared<Scene>(file_name);
+void Rasterizer::loadScene(std::string file_name, std::string background_file) {
+	this->scene = std::make_shared<Scene>(file_name, background_file);
 }
 
 void Rasterizer::initBuffers() {	

@@ -2,7 +2,9 @@
 #include "Scene.h"
 #include "objloader.h"
 
-Scene::Scene(std::string& file_name) {
+Scene::Scene(std::string& file_name, std::string& background_file) {
+	this->background = SphericalMap(background_file);
+
 	const int no_surfaces = LoadOBJ( file_name.c_str(), surfaces_, materials_ );
 
 	for ( auto surface : surfaces_ ) {
@@ -11,10 +13,22 @@ Scene::Scene(std::string& file_name) {
 			
 			for (int j = 0; j < 3; j++, k += 3) {
 				const Vertex & vertex = triangle.vertex(j);
+				//vertex.normal
+
 				verticies.push_back(MyVertex {
+					// position
 					vertex.position.x,
 					vertex.position.y,
 					vertex.position.z,
+					// normal
+					vertex.normal.x,
+					vertex.normal.y,
+					vertex.normal.z,
+					// tangent
+					vertex.tangent.x,
+					vertex.tangent.y,
+					vertex.tangent.z,
+					// texture coordinates
 					vertex.texture_coords->u,
 					vertex.texture_coords->v
 					});
@@ -24,4 +38,20 @@ Scene::Scene(std::string& file_name) {
 	}
 
 	this->vertex_stride = sizeof(MyVertex);
+}
+
+Texture3f Scene::getIrradianceMap() {
+	
+	Texture3f result(64, 32);
+	/*
+	for (int x = 0; x < result.width(); x++) {
+		float phi = float(x * 2 * M_PI) / float(result.width() - 1);
+		for (int y = 0; y < result.height(); y++) {
+			float theta = float(y * M_PI) / float(result.height() - 1) - M_PI_2;
+
+			result.data()[size_t(x) + size_t(y) * size_t(result.width()) = this->background.getBackgroundColor();
+		}
+	}
+	*/
+	return result;
 }

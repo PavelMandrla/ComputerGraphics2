@@ -34,6 +34,8 @@ public:
 
 	~Rasterizer();
 
+	void generateIrradianceMap();
+
 	/// <summary>
 	/// Initialization of OpenGL context
 	/// </summary>
@@ -48,7 +50,7 @@ public:
 	/// <summary>
 	/// Loads the scene geometry
 	/// </summary>
-	void loadScene(std::string file_name);
+	void loadScene(std::string file_name, std::string background_file);
 
 	/// <summary>
 	/// Initialization of VAO and VBO buffers

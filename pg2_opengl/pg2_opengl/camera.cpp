@@ -78,6 +78,18 @@ Matrix4x4 Camera::getMVP() {
 	return this->getP() * this->getV() * this->getM();
 }
 
+Matrix4x4 Camera::getMV() {
+	return this->getV() * this->getM();
+}
+
+Matrix4x4 Camera::getMVn() {
+	auto MVn = this->getV() * this->getM();
+	MVn.EuclideanInverse();
+	MVn.Transpose();
+
+	return MVn;
+}
+
 Vector3 Camera::getViewDir() {
 	auto result = Vector3{
 		float(cos(pitch) * cos(yaw)),
