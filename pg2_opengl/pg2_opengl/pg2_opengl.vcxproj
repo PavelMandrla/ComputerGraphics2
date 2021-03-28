@@ -168,7 +168,6 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="Rasterizer.h" />
     <ClInclude Include="Scene.h" />
-    <ClInclude Include="SphericalMap.h" />
     <ClInclude Include="structs.h" />
     <ClInclude Include="surface.h" />
     <ClInclude Include="texture.h" />
@@ -197,7 +196,6 @@
     <ClCompile Include="pg2_opengl.cpp" />
     <ClCompile Include="Rasterizer.cpp" />
     <ClCompile Include="Scene.cpp" />
-    <ClCompile Include="SphericalMap.cpp" />
     <ClCompile Include="structs.cpp" />
     <ClCompile Include="surface.cpp" />
     <ClCompile Include="texture.cpp" />

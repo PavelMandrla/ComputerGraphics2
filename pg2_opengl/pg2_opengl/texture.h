@@ -82,22 +82,27 @@ public:
 		}
 	}
 
-	T pixel( const int x, const int y ) const
-	{
+	T pixel( const int x, const int y ) const {
 		assert( x >= 0 && x < width_ && y >= 0 && y < height_ );
 
 		return data_[size_t( x ) + size_t( y ) * size_t( width_ )];
 	}
 
-	T texel( const float u, const float v ) const
-	{
+	T texel( const float u, const float v ) const {
 		T value;
 
-#ifdef FAST_INTERP
-		value = pixel( int( u * width_ ), int( v * height_ ) ); // nearest neighbour
-#else
+		#ifdef FAST_INTERP
+		float nU = u;
+		while (nU >= 1.0f) nU -= 1.0f;
+		int x = int(u * width_);
+		int y = int(v * height_);
+		if (v >= 1) y = height_ - 1;
+		if (v < 0) y = 0;
+
+		value = pixel(x, y); // nearest neighbour
+		#else
 		// TODO bilinear interpolation	
-#endif
+		#endif
 
 		return value;
 	}

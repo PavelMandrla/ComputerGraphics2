@@ -116,7 +116,6 @@ Rasterizer::Rasterizer(int width, int height, float fovY, Vector3 viewFrom, Vect
 }
 
 Rasterizer::~Rasterizer() {
-
 	glDeleteShader( vertex_shader );
 	glDeleteShader( fragment_shader );
 	glDeleteProgram( shader_program );
@@ -128,8 +127,6 @@ Rasterizer::~Rasterizer() {
 	delete this->window;
 }
 
-void Rasterizer::generateIrradianceMap() {
-}
 
 int Rasterizer::initDevice() {
 	glfwSetErrorCallback( glfw_callback_1 );
@@ -259,7 +256,8 @@ void Rasterizer::mainLoop() {
 	glEnable( GL_DEPTH_TEST ); // zrusi pouziti z-bufferu, vykresleni se provede bez ohledu na poradi fragmentu z hlediska jejich pseudohloubky
 	glEnable( GL_CULL_FACE ); // zrusi zahazovani opacne orientovanych ploch
 
-	this->scene->getIrradianceMap(64, 32);
+	//this->scene->getIrradianceMap(512, 256);
+	this->scene->getPrefilteredEnvMap(1000.0f, 512, 256);
 	
 	while (!glfwWindowShouldClose(this->window)) {		
 		glClearColor( 0.2f, 0.3f, 0.3f, 1.0f ); // state setting function

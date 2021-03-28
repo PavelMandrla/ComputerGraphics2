@@ -34,8 +34,6 @@ public:
 
 	~Rasterizer();
 
-	void generateIrradianceMap();
-
 	/// <summary>
 	/// Initialization of OpenGL context
 	/// </summary>

@@ -61,6 +61,10 @@ public:
 	*/
 	Vector3( const float * v );
 
+	Vector3(const float phi, const float theta);
+
+	std::pair<float, float> getSphericalCoords();
+
 	//! L2-norma vektoru.
 	/*!
 	\return x Hodnotu \f$\mathbf{||v||}=\sqrt{x^2+y^2+z^2}\f$.

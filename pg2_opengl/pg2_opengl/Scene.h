@@ -3,8 +3,8 @@
 #include <string>
 #include "surface.h"
 #include "material.h"
-#include "SphericalMap.h"
 #include "texture.h"
+#include <memory>
 
 typedef struct MyVertex{
 	float x, y, z;			// position
@@ -32,5 +32,8 @@ public:
 	int getVertexStride() { return this->vertex_stride; };
 
 	Texture3f getIrradianceMap(int width, int height);
+
+	Texture3f getPrefilteredEnvMap(float alpha, int width, int height);
+
 };
 

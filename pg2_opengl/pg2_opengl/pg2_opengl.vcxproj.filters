@@ -93,9 +93,6 @@
     <ClInclude Include="glutils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SphericalMap.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -159,9 +156,6 @@
       <Filter>Source Files\math</Filter>
     </ClCompile>
     <ClCompile Include="glutils.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SphericalMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
