@@ -257,7 +257,8 @@ void Rasterizer::mainLoop() {
 	glEnable( GL_CULL_FACE ); // zrusi zahazovani opacne orientovanych ploch
 
 	//this->scene->getIrradianceMap(512, 256);
-	this->scene->getPrefilteredEnvMap(1000.0f, 512, 256);
+	//this->scene->getPrefilteredEnvMap(1000.0f, 512, 256);
+	this->scene->getIntegrationMap(100, 100).Save("D:\\prg\\cpp\\integration_map.exr");
 	
 	while (!glfwWindowShouldClose(this->window)) {		
 		glClearColor( 0.2f, 0.3f, 0.3f, 1.0f ); // state setting function

@@ -98,6 +98,32 @@ Vector3 getCosLobeVector(float alpha, Vector3 omega_r) {
 	return omega_i;
 }
 
+
+
+Vector3 getGGXOmega_h(float alpha, Vector3 n) {
+	float xi_1 = rng();
+	float xi_2 = rng();
+
+	float phi_n = 2 * float(M_PI) * xi_1;
+	float theta_n = atan(alpha * sqrt(xi_2 / (1 - xi_2)));
+
+	Vector3 omega_h(phi_n, theta_n);
+
+	return rotateVector(omega_h, n);
+}
+
+Vector3 getReflectedVector(Vector3 d, Vector3 n) {
+	d.Normalize();
+	n.Normalize();
+	Vector3 vec = d - 2 * (d.DotProduct(n)) * n;
+	return vec;
+}
+
+Vector3 getGGXOmega_i(float alpha, Vector3 n, Vector3 omega_o) {	//omega_o -> eye direction
+	auto omega_h = getGGXOmega_h(alpha, n);							//omega_h ->
+	return getReflectedVector(omega_o, omega_h);
+}
+
 Texture3f Scene::getPrefilteredEnvMap(float alpha, int width, int height) {
 	Texture3f result(width, height);
 
@@ -126,7 +152,64 @@ Texture3f Scene::getPrefilteredEnvMap(float alpha, int width, int height) {
 			result.data()[size_t(x) + size_t(y) * size_t(result.width())] = Color3f::toLinear(sampleSum);
 		}
 	}
-	result.Save("D:\\prg\\cpp\\save_test.exr");
+	//result.Save("D:\\prg\\cpp\\save_test.exr");
+
+	return result;
+}
+
+float G(float alpha, float ct_o, float ct_i) {
+	float alpha_2 = pow(alpha, 2);
+	float top = 2.0f * ct_o * ct_i;
+	float bottom = ct_o * sqrt(alpha_2 + (1 - alpha_2) * pow(ct_i, 2)) + ct_i * sqrt(alpha_2 + (1 - alpha_2) * pow(ct_o, 2));
+	return top / bottom;
+}
+
+Color3f getIntegrationMapValue(float alpha, float ct_o) {
+	Vector3 n = { 0.0f, 0.0f, 1.0f };
+	Vector3 omega_o = { float(sqrt(1 - pow(ct_o, 2))), 0, ct_o };
+	
+	float sum_s = 0;
+	float sum_b = 0;
+	int N = 1;
+	for (int i = 0; i < N; i++) {
+		Vector3 omega_h = getGGXOmega_h(alpha, n);
+		Vector3 omega_i = getReflectedVector(omega_o, omega_h);
+
+		float ct_h = omega_o.DotProduct(omega_h);
+		float ct_n = n.DotProduct(omega_h);
+		float ct_i = n.DotProduct(omega_i);
+
+		float g = G(alpha, ct_o, ct_i);
+
+		auto a = g * ct_h;
+		auto b = ct_o * ct_n;
+		auto c = pow(1 - ct_h, 5);
+
+		sum_s += (a / b) * c;
+		sum_s += (a / b) * (1 - c);
+	}
+
+	auto result = Color3f({
+		sum_s / float(N),
+		sum_b / float(N),
+		0.0f
+		});
+
+	return Color3f::toLinear(result);
+}
+
+Texture3f Scene::getIntegrationMap(int width, int height) {
+	Texture3f result(width, height);
+	float dx = 1.0f / float(width);
+	float dy = 1.0f / float(height);
+	for (int x = 1; x < width; x++) {
+		float ct_o = float(x) * dx;
+		for (int y = 1; y < height; y++) {
+			float alpha = float(y) * y;
+
+			result.data()[size_t(x) + size_t(y) * size_t(result.width())] = getIntegrationMapValue(alpha, ct_o);
+		}
+	}
 
 	return result;
 }
