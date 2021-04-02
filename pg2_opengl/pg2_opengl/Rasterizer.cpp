@@ -30,7 +30,8 @@ void GLAPIENTRY gl_callback_1( GLenum source, GLenum type, GLuint id, GLenum sev
 
 // invoked when window is resized
 void framebuffer_resize_callback_1( GLFWwindow * window, int width, int height ) {
-	glViewport( 0, 0, width, height );
+	auto rasterizer = reinterpret_cast<Rasterizer*>(glfwGetWindowUserPointer(window));
+	rasterizer->resize(width, height);
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -159,8 +160,8 @@ void Rasterizer::initBuffers() {
 }
 
 int Rasterizer::InitShadowDepthBuffer() {
-	glGenTextures(1, &tex_shadow_map_); // texture to hold the depth values from the light's perspective
-	glBindTexture(GL_TEXTURE_2D, tex_shadow_map_);
+	glGenTextures(1, &tex_shadow_map); // texture to hold the depth values from the light's perspective
+	glBindTexture(GL_TEXTURE_2D, tex_shadow_map);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, this->light->getWidth(), this->light->getHeight(), 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -172,13 +173,24 @@ int Rasterizer::InitShadowDepthBuffer() {
 	glTexParameterfv( GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, color );
 	glBindTexture( GL_TEXTURE_2D, 0 );
 
-	glGenFramebuffers(1, &fbo_shadow_map_); // new frame buffer
-	glBindFramebuffer(GL_FRAMEBUFFER, fbo_shadow_map_);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, tex_shadow_map_, 0); // attach the texture as depth
+	glGenFramebuffers(1, &fbo_shadow_map); // new frame buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo_shadow_map);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, tex_shadow_map, 0); // attach the texture as depth
 	glDrawBuffer(GL_NONE); // we dont need any color buffer during the first pass
 	glBindFramebuffer(GL_FRAMEBUFFER, 0); // bind the default framebuffer back
 
 	return 0;
+}
+
+void Rasterizer::resize(const int width, const int height) {
+	glViewport(0, 0, width, height);
+	camera->update(width, height);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glDeleteRenderbuffers(1, &tex_shadow_map);
+	glDeleteFramebuffers(1, &fbo_shadow_map);
+	
+	initBuffers();
 }
 
 void Rasterizer::mainLoop() {
@@ -193,7 +205,7 @@ void Rasterizer::mainLoop() {
 		// set the shadow shaderprogram and the viewport to match the size of the depth map
 		glUseProgram(this->shadowMappingShader->program);
 		glViewport(0, 0, light->getWidth(), light->getHeight());
-		glBindFramebuffer(GL_FRAMEBUFFER, fbo_shadow_map_);
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo_shadow_map);
 		glClear(GL_DEPTH_BUFFER_BIT);
 
 		// set up the light source through the MLP matrix
@@ -222,7 +234,7 @@ void Rasterizer::mainLoop() {
 		SetMatrix4x4(mainShader->program, (GLfloat*) light->getMVP().data(), "mlp");
 
 		glActiveTexture(GL_TEXTURE3);
-		glBindTexture(GL_TEXTURE_2D, tex_shadow_map_);
+		glBindTexture(GL_TEXTURE_2D, tex_shadow_map);
 		SetSampler(mainShader->program, 3, "shadow_map");
 
 		glDrawArrays( GL_TRIANGLES, 0, this->scene->getVerticies().size() );

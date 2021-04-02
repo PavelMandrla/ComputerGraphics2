@@ -10,7 +10,6 @@
 
 class Rasterizer {
 private:
-
 	bool check_gl(const GLenum error);
 
 	std::shared_ptr<Scene> scene;
@@ -27,11 +26,8 @@ private:
 	GLuint vao, vbo;
 	
 	//SHADOW MAP
-	//int shadow_width_{ 1024 }; // shadow map resolution
-	//int shadow_height_{ shadow_width_ };
-	GLuint fbo_shadow_map_{ 0 };  // shadow mapping FB
-	GLuint tex_shadow_map_{ 0 };  // shadow map texture
-	//GLuint shadow_program_{ 0 };  // collection of shadow mapping shaders
+	GLuint fbo_shadow_map { 0 };  // shadow mapping FB
+	GLuint tex_shadow_map { 0 };  // shadow map texture
 
 	void initShadowProgram();
 
@@ -66,6 +62,8 @@ public:
 	/// </summary>
 	/// <returns></returns>
 	int InitShadowDepthBuffer();
+
+	void resize(const int width, const int height);
 
 	void mainLoop();
 

@@ -2,7 +2,6 @@
 #include "camera.h"
 
 Camera::Camera(int width, int height, float fovY, Vector3 viewFrom, Vector3 viewAt, float tNear, float tFar) {
-
 	this->width = width;
 	this->height = height;
 
@@ -21,6 +20,14 @@ Camera::Camera(int width, int height, float fovY, Vector3 viewFrom, Vector3 view
 	this->tFar = tFar;
 
 	this->velocity = 1.0f;
+}
+
+void Camera::update(int width, int height) {
+	this->width = width;
+	this->height = height;
+
+	float aspect = (float)this->width / (float)this->height;
+	this->fovX = 2 * atan(aspect * tan(this->fovY / 2.0f));
 }
 
 Vector3 Camera::getViewDir() {

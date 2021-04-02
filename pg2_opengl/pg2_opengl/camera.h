@@ -14,6 +14,8 @@ private:
 public:
 	Camera(int width, int height, float fovY, Vector3 viewFrom, Vector3 viewAt, float tNear = 1.0f, float tFar = 1000.0f);
 	
+	void update(int width, int height);
+
 	virtual Vector3 getViewFrom() override { return this->viewFrom; }
 
 	Vector3 getViewDir();
