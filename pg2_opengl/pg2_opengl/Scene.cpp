@@ -170,7 +170,7 @@ Color3f getIntegrationMapValue(float alpha, float ct_o) {
 	
 	float sum_s = 0;
 	float sum_b = 0;
-	int N = 1;
+	int N = 1000;
 	for (int i = 0; i < N; i++) {
 		Vector3 omega_h = getGGXOmega_h(alpha, n);
 		Vector3 omega_i = getReflectedVector(omega_o, omega_h);
@@ -186,7 +186,7 @@ Color3f getIntegrationMapValue(float alpha, float ct_o) {
 		auto c = pow(1 - ct_h, 5);
 
 		sum_s += (a / b) * c;
-		sum_s += (a / b) * (1 - c);
+		sum_b += (a / b) * (1 - c);
 	}
 
 	auto result = Color3f({
@@ -202,10 +202,14 @@ Texture3f Scene::getIntegrationMap(int width, int height) {
 	Texture3f result(width, height);
 	float dx = 1.0f / float(width);
 	float dy = 1.0f / float(height);
+
+	float dAlpha = (1000000 - 1) / float(height);
 	for (int x = 1; x < width; x++) {
 		float ct_o = float(x) * dx;
 		for (int y = 1; y < height; y++) {
-			float alpha = float(y) * y;
+			//float ai = float(y) * y;
+			//float alpha = float(y) * dAlpha / 1000;
+			float alpha = 0.001;
 
 			result.data()[size_t(x) + size_t(y) * size_t(result.width())] = getIntegrationMapValue(alpha, ct_o);
 		}

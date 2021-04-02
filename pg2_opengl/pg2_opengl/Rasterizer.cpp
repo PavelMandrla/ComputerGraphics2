@@ -4,63 +4,6 @@
 #include "glutils.h"
 #include "mymath.h"
 
-char* Rasterizer::LoadShader(const char* file_name) {
-	FILE * file = fopen( file_name, "rt" );
-
-	if ( file == NULL ) {
-		printf( "IO error: File '%s' not found.\n", file_name );
-		return NULL;
-	}
-
-	size_t file_size = static_cast< size_t >( GetFileSize64( file_name ) );
-	char * shader = NULL;
-
-	if ( file_size < 1 ) {
-		printf( "Shader error: File '%s' is empty.\n", file_name );
-	} else {
-		/* v glShaderSource nezadáváme v posledním parametru délku,
-		takže øetìzec musí být null terminated, proto +1 a reset na 0*/
-		shader = new char[file_size + 1];
-		memset( shader, 0, sizeof( *shader ) * ( file_size + 1 ) );
-
-		size_t bytes = 0; 
-
-		do {
-			bytes += fread( shader, sizeof( char ), file_size, file );
-		} while ( !feof( file ) && ( bytes < file_size ) );
-
-		if ( !feof( file ) && ( bytes != file_size ) ) {
-			printf( "IO error: Unexpected end of file '%s' encountered.\n", file_name );
-		}
-	}
-
-	fclose( file );
-	file = NULL;
-
-	return shader;
-}
-
-GLint Rasterizer::CheckShader(const GLenum shader) {
-	GLint status = 0;
-	glGetShaderiv( shader, GL_COMPILE_STATUS, &status );
-
-	printf( "Shader compilation %s.\n", ( status == GL_TRUE ) ? "was successful" : "FAILED" );
-
-	if (status == GL_FALSE) {
-		int info_length = 0;
-		glGetShaderiv( shader, GL_INFO_LOG_LENGTH, &info_length );
-		char * info_log = new char[info_length];
-		memset( info_log, 0, sizeof( *info_log ) * info_length );
-		glGetShaderInfoLog( shader, info_length, &info_length, info_log );
-
-		printf( "Error log: %s\n", info_log );
-
-		SAFE_DELETE_ARRAY( info_log );
-	}
-
-	return status;
-}
-
 // OpenGL check state
 bool Rasterizer::check_gl(const GLenum error) {
 	if ( error != GL_NO_ERROR ) {
@@ -111,14 +54,16 @@ static void cursor_position_callback(GLFWwindow* window, double xpos, double ypo
 	glfwSetCursorPos(window, 0, 0);
 }
 
+void Rasterizer::initShadowProgram() {
+
+}
+
 Rasterizer::Rasterizer(int width, int height, float fovY, Vector3 viewFrom, Vector3 viewAt) {
 	this->camera = std::make_shared<Camera>(width, height, fovY, viewFrom, viewAt);
+	this->light = std::make_shared<Directional>(Vector3 {0, 0, 500}, Vector3 {0, 0, 0}, deg2rad(45), 1024, 1024);
 }
 
 Rasterizer::~Rasterizer() {
-	glDeleteShader( vertex_shader );
-	glDeleteShader( fragment_shader );
-	glDeleteProgram( shader_program );
 
 	glDeleteBuffers( 1, &vbo );
 	glDeleteVertexArrays( 1, &vao );
@@ -126,7 +71,6 @@ Rasterizer::~Rasterizer() {
 	glfwTerminate();
 	delete this->window;
 }
-
 
 int Rasterizer::initDevice() {
 	glfwSetErrorCallback( glfw_callback_1 );
@@ -177,45 +121,10 @@ int Rasterizer::initDevice() {
 }
 
 void Rasterizer::initPrograms() {	///řeší vytvoření vertex a fragment shader
-	// CREATE VERTEX SHADER
-	this->vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-	const char * vertex_shader_source = LoadShader("basic_shader.vert");	//musime natahnout zdrojovy kod toho shaderu
-	glShaderSource(vertex_shader, 1, &vertex_shader_source, nullptr);		//nastavime mu zdrojovy soubor
-	glCompileShader(vertex_shader);	
-	SAFE_DELETE_ARRAY(vertex_shader_source);
-	CheckShader(this->vertex_shader);
+	this->mainShader = std::make_shared<ShaderProgram>("basic_shader.vert", "basic_shader.frag");
 
-	// CREATE FRAGMENT SHADER
-	this->fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-	const char * fragment_shader_source = LoadShader( "basic_shader.frag" );
-	glShaderSource( this->fragment_shader, 1, &fragment_shader_source, nullptr );
-	glCompileShader( this->fragment_shader );
-	SAFE_DELETE_ARRAY( fragment_shader_source );
-	CheckShader( this->fragment_shader );
+	glUseProgram(this->mainShader->shader_program );
 
-	// CREATE PROGRAM
-	this->shader_program = glCreateProgram();
-	glAttachShader( shader_program, this->vertex_shader );
-	glAttachShader( shader_program, this->fragment_shader );
-	glLinkProgram( shader_program );
-
-
-	GLint program_linked;
-	glGetProgramiv(shader_program, GL_LINK_STATUS, &program_linked);
-	if (program_linked != GL_TRUE) {
-		GLsizei log_length = 0;
-		GLchar message[1024];
-		glGetProgramInfoLog(shader_program, 1024, &log_length, message);
-		printf(message);
-		// Write the error to a log
-	}
-	
-	// TODO check linking
-	glUseProgram( shader_program );
-
-	//TODO - asi remove
-	//glPointSize( 10.0f );	
-	//glLineWidth( 2.0f );
 	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 }
 
@@ -252,25 +161,44 @@ void Rasterizer::initBuffers() {
 	
 }
 
+int Rasterizer::InitShadowDepthBuffer() {
+	glGenTextures(1, &tex_shadow_map_); // texture to hold the depth values from the light's perspective
+	glBindTexture(GL_TEXTURE_2D, tex_shadow_map_);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, this->light->getWidth(), this->light->getHeight(), 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER); 
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+
+	const float color[] = { 1.0f, 1.0f, 1.0f, 1.0f }; // areas outside the light's frustum will be lit
+	glTexParameterfv( GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, color );
+	glBindTexture( GL_TEXTURE_2D, 0 );
+
+	glGenFramebuffers(1, &fbo_shadow_map_); // new frame buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo_shadow_map_);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, tex_shadow_map_, 0); // attach the texture as depth
+	glDrawBuffer(GL_NONE); // we dontneed any color buffer during the first pass
+	glBindFramebuffer(GL_FRAMEBUFFER, 0); // bind the default framebuffer back
+
+	return 0;
+}
+
 void Rasterizer::mainLoop() {
 	glEnable( GL_DEPTH_TEST ); // zrusi pouziti z-bufferu, vykresleni se provede bez ohledu na poradi fragmentu z hlediska jejich pseudohloubky
 	glEnable( GL_CULL_FACE ); // zrusi zahazovani opacne orientovanych ploch
 
-	//this->scene->getIrradianceMap(512, 256);
-	//this->scene->getPrefilteredEnvMap(1000.0f, 512, 256);
-	this->scene->getIntegrationMap(100, 100).Save("D:\\prg\\cpp\\integration_map.exr");
-	
 	while (!glfwWindowShouldClose(this->window)) {		
 		glClearColor( 0.2f, 0.3f, 0.3f, 1.0f ); // state setting function
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT ); // state using function
 
 		glBindVertexArray( vao );
 
-		SetMatrix4x4(this->shader_program, (GLfloat*) camera->getMVP().data(), "mvp");
-		SetMatrix4x4(this->shader_program, (GLfloat*)camera->getMV().data(), "mv");
-		SetMatrix4x4(this->shader_program, (GLfloat*)camera->getMVn().data(), "mvn");
+		SetMatrix4x4(mainShader->shader_program, (GLfloat*) camera->getMVP().data(), "mvp");
+		SetMatrix4x4(mainShader->shader_program, (GLfloat*)camera->getMV().data(), "mv");
+		SetMatrix4x4(mainShader->shader_program, (GLfloat*)camera->getMVn().data(), "mvn");
 
-		glDrawArrays( GL_TRIANGLES, 0, this->scene->getVerticies().size() ); //??
+		glDrawArrays( GL_TRIANGLES, 0, this->scene->getVerticies().size() );
 		//glDrawArrays( GL_POINTS, 0, 6 );
 		//glDrawArrays( GL_LINE_LOOP, 0, this->scene->getVerticies().size() );
 		//glDrawElements( GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0 ); // optional - render from an index buffer

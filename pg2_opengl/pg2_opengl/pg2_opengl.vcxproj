@@ -160,6 +160,7 @@
     <ClInclude Include="camera.h" />
     <ClInclude Include="color.h" />
     <ClInclude Include="glutils.h" />
+    <ClInclude Include="Directional.h" />
     <ClInclude Include="material.h" />
     <ClInclude Include="matrix3x3.h" />
     <ClInclude Include="matrix4x4.h" />
@@ -168,6 +169,7 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="Rasterizer.h" />
     <ClInclude Include="Scene.h" />
+    <ClInclude Include="ShaderProgram.h" />
     <ClInclude Include="structs.h" />
     <ClInclude Include="surface.h" />
     <ClInclude Include="texture.h" />
@@ -182,6 +184,7 @@
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="color.cpp" />
     <ClCompile Include="glutils.cpp" />
+    <ClCompile Include="Directional.cpp" />
     <ClCompile Include="material.cpp" />
     <ClCompile Include="matrix3x3.cpp" />
     <ClCompile Include="matrix4x4.cpp" />
@@ -196,6 +199,7 @@
     <ClCompile Include="pg2_opengl.cpp" />
     <ClCompile Include="Rasterizer.cpp" />
     <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="ShaderProgram.cpp" />
     <ClCompile Include="structs.cpp" />
     <ClCompile Include="surface.cpp" />
     <ClCompile Include="texture.cpp" />

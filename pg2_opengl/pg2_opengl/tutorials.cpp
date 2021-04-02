@@ -111,6 +111,10 @@ GLint CheckShader( const GLenum shader )
 }
 
 /* create a window and initialize OpenGL context */
+
+	//this->scene->getIrradianceMap(512, 256);
+	//this->scene->getPrefilteredEnvMap(1000.0f, 512, 256);
+	//this->scene->getIntegrationMap(100, 100).Save("D:\\prg\\cpp\\integration_map.exr");
 int tutorial_1( const int width, const int height )
 {
 	glfwSetErrorCallback( glfw_callback );
