@@ -9,7 +9,7 @@ ShaderProgram::ShaderProgram(string vertPath, string fragPath) {
 ShaderProgram::~ShaderProgram() {
 	glDeleteShader(vertex_shader);
 	glDeleteShader(fragment_shader);
-	glDeleteProgram(shader_program);
+	glDeleteProgram(program);
 }
 
 char* ShaderProgram::LoadShader(const char* file_name) {
@@ -87,17 +87,17 @@ void ShaderProgram::initPrograms(string vertPath, string fragPath) {
 	CheckShader(this->fragment_shader);
 
 	// CREATE PROGRAM
-	this->shader_program = glCreateProgram();
-	glAttachShader(shader_program, this->vertex_shader);
-	glAttachShader(shader_program, this->fragment_shader);
-	glLinkProgram(shader_program);
+	this->program = glCreateProgram();
+	glAttachShader(program, this->vertex_shader);
+	glAttachShader(program, this->fragment_shader);
+	glLinkProgram(program);
 
 	GLint program_linked;
-	glGetProgramiv(shader_program, GL_LINK_STATUS, &program_linked);
+	glGetProgramiv(program, GL_LINK_STATUS, &program_linked);
 	if (program_linked != GL_TRUE) {
 		GLsizei log_length = 0;
 		GLchar message[1024];
-		glGetProgramInfoLog(shader_program, 1024, &log_length, message);
+		glGetProgramInfoLog(program, 1024, &log_length, message);
 		printf(message);
 		// Write the error to a log
 	}

@@ -212,6 +212,10 @@
   <ItemGroup>
     <None Include="basic_shader.frag" />
     <None Include="basic_shader.vert" />
+    <None Include="shadowMap_shader.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="shadowMap_shader.frag" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -60,11 +60,10 @@ void Rasterizer::initShadowProgram() {
 
 Rasterizer::Rasterizer(int width, int height, float fovY, Vector3 viewFrom, Vector3 viewAt) {
 	this->camera = std::make_shared<Camera>(width, height, fovY, viewFrom, viewAt);
-	this->light = std::make_shared<Directional>(Vector3 {0, 0, 500}, Vector3 {0, 0, 0}, deg2rad(45), 1024, 1024);
+	this->light = std::make_shared<Directional>(Vector3 {0, 10, 10}, Vector3 {0, 0, 0}, deg2rad(45), 1024, 1024);
 }
 
 Rasterizer::~Rasterizer() {
-
 	glDeleteBuffers( 1, &vbo );
 	glDeleteVertexArrays( 1, &vao );
 
@@ -122,10 +121,7 @@ int Rasterizer::initDevice() {
 
 void Rasterizer::initPrograms() {	///řeší vytvoření vertex a fragment shader
 	this->mainShader = std::make_shared<ShaderProgram>("basic_shader.vert", "basic_shader.frag");
-
-	glUseProgram(this->mainShader->shader_program );
-
-	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+	this->shadowMappingShader = std::make_shared<ShaderProgram>("shadowMap_shader.vert", "shadowMap_shader.frag");
 }
 
 void Rasterizer::loadScene(std::string file_name, std::string background_file) {
@@ -159,6 +155,7 @@ void Rasterizer::initBuffers() {
 	glVertexAttribPointer( 3, 2, GL_FLOAT, GL_FALSE, scene->getVertexStride(), (void*) (sizeof(float) * 9));
 	glEnableVertexAttribArray(3); //kazdy index, ktery popiseme, musime zenablovat
 	
+	this->InitShadowDepthBuffer();
 }
 
 int Rasterizer::InitShadowDepthBuffer() {
@@ -178,25 +175,55 @@ int Rasterizer::InitShadowDepthBuffer() {
 	glGenFramebuffers(1, &fbo_shadow_map_); // new frame buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo_shadow_map_);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, tex_shadow_map_, 0); // attach the texture as depth
-	glDrawBuffer(GL_NONE); // we dontneed any color buffer during the first pass
+	glDrawBuffer(GL_NONE); // we dont need any color buffer during the first pass
 	glBindFramebuffer(GL_FRAMEBUFFER, 0); // bind the default framebuffer back
 
 	return 0;
 }
 
 void Rasterizer::mainLoop() {
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
 	glEnable( GL_DEPTH_TEST ); // zrusi pouziti z-bufferu, vykresleni se provede bez ohledu na poradi fragmentu z hlediska jejich pseudohloubky
 	glEnable( GL_CULL_FACE ); // zrusi zahazovani opacne orientovanych ploch
 
 	while (!glfwWindowShouldClose(this->window)) {		
+		#pragma region ---first pass ---
+
+		// set the shadow shaderprogram and the viewport to match the size of the depth map
+		glUseProgram(this->shadowMappingShader->program);
+		glViewport(0, 0, light->getWidth(), light->getHeight());
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo_shadow_map_);
+		glClear(GL_DEPTH_BUFFER_BIT);
+
+		// set up the light source through the MLP matrix
+		SetMatrix4x4(shadowMappingShader->program, (GLfloat*) light->getMVP().data(), "mlp");
+
+		// draw the scene
+		glBindVertexArray(this->vao);
+		glDrawArrays(GL_TRIANGLES, 0, scene->getVerticies().size());
+		glBindVertexArray(0);
+
+		// set back the main shaderprogram and the viewport
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glViewport(0, 0, camera->getWidth(), camera->getHeight());
+		glUseProgram(mainShader->program);
+
+		#pragma endregion
+		
 		glClearColor( 0.2f, 0.3f, 0.3f, 1.0f ); // state setting function
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT ); // state using function
 
 		glBindVertexArray( vao );
 
-		SetMatrix4x4(mainShader->shader_program, (GLfloat*) camera->getMVP().data(), "mvp");
-		SetMatrix4x4(mainShader->shader_program, (GLfloat*)camera->getMV().data(), "mv");
-		SetMatrix4x4(mainShader->shader_program, (GLfloat*)camera->getMVn().data(), "mvn");
+		SetMatrix4x4(mainShader->program, (GLfloat*) camera->getMVP().data(), "mvp");
+		SetMatrix4x4(mainShader->program, (GLfloat*) camera->getMV().data(), "mv");
+		SetMatrix4x4(mainShader->program, (GLfloat*) camera->getMVn().data(), "mvn");
+		SetMatrix4x4(mainShader->program, (GLfloat*) light->getMVP().data(), "mlp");
+
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, tex_shadow_map_);
+		SetSampler(mainShader->program, 3, "shadow_map");
 
 		glDrawArrays( GL_TRIANGLES, 0, this->scene->getVerticies().size() );
 		//glDrawArrays( GL_POINTS, 0, 6 );

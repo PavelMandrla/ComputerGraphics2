@@ -178,5 +178,13 @@
     <None Include="basic_shader.frag">
       <Filter>Source Files\opengl</Filter>
     </None>
+    <None Include="shadowMap_shader.vert">
+      <Filter>Source Files\opengl</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="shadowMap_shader.frag">
+      <Filter>Source Files\opengl</Filter>
+    </Text>
   </ItemGroup>
 </Project>

@@ -21,12 +21,7 @@ private:
 	GLFWwindow* window;
 
 	std::shared_ptr<ShaderProgram> mainShader;
-
-
-	//INIT PROGRAMS
-	//GLuint vertex_shader;
-	//GLuint fragment_shader;
-	//GLuint shader_program;
+	std::shared_ptr<ShaderProgram> shadowMappingShader;
 
 	//INIT BUFFERS
 	GLuint vao, vbo;
@@ -36,7 +31,7 @@ private:
 	//int shadow_height_{ shadow_width_ };
 	GLuint fbo_shadow_map_{ 0 };  // shadow mapping FB
 	GLuint tex_shadow_map_{ 0 };  // shadow map texture
-	GLuint shadow_program_{ 0 };  // collection of shadow mapping shaders
+	//GLuint shadow_program_{ 0 };  // collection of shadow mapping shaders
 
 	void initShadowProgram();
 

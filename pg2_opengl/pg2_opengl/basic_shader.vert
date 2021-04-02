@@ -7,8 +7,10 @@ layout (location = 3) in vec2 texcoord;
 uniform mat4 mvp;
 uniform mat4 mv;
 uniform mat4 mvn;
+uniform mat4 mlp;
 
 out vec3 unified_normal_es;
+out vec3 position_lcs;
 
 void main( void ) {
 
@@ -20,4 +22,7 @@ void main( void ) {
 	}
 	
 	gl_Position = mvp * vec4( position, 1.0f );
+
+	vec4 tmp = mlp * vec4( position.xyz, 1.0f );
+	position_lcs = tmp.xyz / tmp.w;
 }

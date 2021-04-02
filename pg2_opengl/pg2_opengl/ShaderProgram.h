@@ -8,7 +8,7 @@ class ShaderProgram {
 public:
 	GLuint vertex_shader;
 	GLuint fragment_shader;
-	GLuint shader_program;
+	GLuint program;
 
 	ShaderProgram(string vertPath, string fragPath);
 	~ShaderProgram();
