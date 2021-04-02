@@ -9,10 +9,12 @@ uniform mat4 mv;
 uniform mat4 mvn;
 uniform mat4 mlp;
 
+out vec3 v_normal;
 out vec3 unified_normal_es;
 out vec3 position_lcs;
 
 void main( void ) {
+	v_normal = normalize(normal);
 
 	unified_normal_es = normalize((mvn * vec4(normal.xyz, 0.0f)).xyz);
 	vec4 hit_es = mv * vec4(position.xyz, 1.0f);

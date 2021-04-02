@@ -49,17 +49,17 @@ void Camera::moveBackward() {
 }
 
 void Camera::moveLeft() {
-	auto moveDir = this->getViewDir().CrossProduct(Vector3{ 0,1,0 });
-	this->viewFrom -= this->velocity * moveDir;
-}
-
-void Camera::moveRight() {
-	auto moveDir = this->getViewDir().CrossProduct(Vector3{ 0,1,0 });
+	auto moveDir = this->getViewDir().CrossProduct(Vector3{ 0,0,1 });
 	this->viewFrom += this->velocity * moveDir;
 }
 
+void Camera::moveRight() {
+	auto moveDir = this->getViewDir().CrossProduct(Vector3{ 0,0,1 });
+	this->viewFrom -= this->velocity * moveDir;
+}
+
 void Camera::adjustYaw(double x) {
-	this->yaw -= float(x * M_PI / 10000.0f);
+	this->yaw += float(x * M_PI / 10000.0f);
 }
 
 void Camera::adjustPitch(double y) {

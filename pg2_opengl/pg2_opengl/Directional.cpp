@@ -43,7 +43,7 @@ Matrix4x4 Directional::getM() {
 Matrix4x4 Directional::getV() {
 	Vector3 z_e = this->getViewFrom() - this->getViewAt();
 	z_e.Normalize();
-	Vector3 x_e = Vector3{ 0,1,0 }.CrossProduct(z_e);
+	Vector3 x_e = Vector3{ 0,0,-1 }.CrossProduct(z_e);
 	Vector3 y_e = z_e.CrossProduct(x_e);
 
 	return Matrix4x4::EuclideanInverse(Matrix4x4(

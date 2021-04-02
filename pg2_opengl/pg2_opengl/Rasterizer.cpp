@@ -49,14 +49,33 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
 	//printf("x:%f y:%f\n", xpos, ypos);
 	auto camera = reinterpret_cast<Rasterizer*>(glfwGetWindowUserPointer(window))->getCamera();
-	camera->adjustYaw(ypos);
-	camera->adjustPitch(xpos);
+	camera->adjustYaw(xpos);
+	camera->adjustPitch(ypos);
 
 	glfwSetCursorPos(window, 0, 0);
 }
 
-void Rasterizer::initShadowProgram() {
+void Rasterizer::initIrradianceMapTexture() {
+	auto mapTex = this->scene->getIrradianceMap(128, 64);
+	//auto mapTex = Texture3f("D:\\prg\\cpp\\ComputerGraphics2\\data\\irradianceMap.exr");
 
+	glGenTextures(1, &tex_irradiance_map);
+	glBindTexture(GL_TEXTURE_2D, tex_irradiance_map);
+
+	if (glIsTexture(tex_irradiance_map)) {
+		// Give the image to OpenGL
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, mapTex.width(), mapTex.height(), 0, GL_RGB, GL_FLOAT, mapTex.data());
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	}
+
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 Rasterizer::Rasterizer(int width, int height, float fovY, Vector3 viewFrom, Vector3 viewAt) {
@@ -127,6 +146,7 @@ void Rasterizer::initPrograms() {	///řeší vytvoření vertex a fragment shade
 
 void Rasterizer::loadScene(std::string file_name, std::string background_file) {
 	this->scene = std::make_shared<Scene>(file_name, background_file);
+	//this->scene->getIrradianceMap(512, 256).Save("D:\\prg\\cpp\\irradianceMap.exr");
 }
 
 void Rasterizer::initBuffers() {	
@@ -156,10 +176,11 @@ void Rasterizer::initBuffers() {
 	glVertexAttribPointer( 3, 2, GL_FLOAT, GL_FALSE, scene->getVertexStride(), (void*) (sizeof(float) * 9));
 	glEnableVertexAttribArray(3); //kazdy index, ktery popiseme, musime zenablovat
 	
-	this->InitShadowDepthBuffer();
+	this->initIrradianceMapTexture();
+	this->initShadowDepthBuffer();
 }
 
-int Rasterizer::InitShadowDepthBuffer() {
+int Rasterizer::initShadowDepthBuffer() {
 	glGenTextures(1, &tex_shadow_map); // texture to hold the depth values from the light's perspective
 	glBindTexture(GL_TEXTURE_2D, tex_shadow_map);
 
@@ -233,8 +254,13 @@ void Rasterizer::mainLoop() {
 		SetMatrix4x4(mainShader->program, (GLfloat*) camera->getMVn().data(), "mvn");
 		SetMatrix4x4(mainShader->program, (GLfloat*) light->getMVP().data(), "mlp");
 
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, tex_irradiance_map);
+		SetSampler(mainShader->program, 1, "irradiance_map");
+
 		glActiveTexture(GL_TEXTURE3);
 		glBindTexture(GL_TEXTURE_2D, tex_shadow_map);
+
 		SetSampler(mainShader->program, 3, "shadow_map");
 
 		glDrawArrays( GL_TRIANGLES, 0, this->scene->getVerticies().size() );

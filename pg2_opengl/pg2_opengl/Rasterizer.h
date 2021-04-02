@@ -29,7 +29,8 @@ private:
 	GLuint fbo_shadow_map { 0 };  // shadow mapping FB
 	GLuint tex_shadow_map { 0 };  // shadow map texture
 
-	void initShadowProgram();
+	GLuint tex_irradiance_map{ 0 };
+	void initIrradianceMapTexture();
 
 public:
 	Rasterizer(int width, int height, float fovY, Vector3 viewFrom, Vector3 viewAt);
@@ -61,7 +62,7 @@ public:
 	/// Initialize shadow (depth) map texture and framebuffer for the first 
 	/// </summary>
 	/// <returns></returns>
-	int InitShadowDepthBuffer();
+	int initShadowDepthBuffer();
 
 	void resize(const int width, const int height);
 

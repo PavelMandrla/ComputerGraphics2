@@ -16,8 +16,5 @@ public:
 	char* LoadShader(const char* file_name);
 	GLint CheckShader(const GLenum shader);
 	void initPrograms(string vertPath, string fragPath);
-
-
-
 };
 

@@ -4,6 +4,9 @@
 #include "matrix3x3.h"
 #include <random>
 
+std::default_random_engine generator;
+std::uniform_real_distribution<float> distribution(0, 0.99999f);
+auto rng = std::bind(distribution, generator);
 
 Scene::Scene(std::string& file_name, std::string& background_file) {
 	this->background = std::make_shared<Texture3f>(background_file);
@@ -62,6 +65,10 @@ Texture3f Scene::getIrradianceMap(int width, int height) {
 	return result;
 }
 
+Texture3f Scene::getIrradianceMap(std::string path) {
+	return Texture3f(path);
+}
+
 Vector3 rotateVector(Vector3 v, Vector3 n) {
 	Vector3 o1 = n.CrossProduct(Vector3{ 1, 0, 0 });
 	if (o1.DotProduct(o1) < 0.001) {
@@ -74,10 +81,6 @@ Vector3 rotateVector(Vector3 v, Vector3 n) {
 	//return Matrix3x3{ n, o2, o1} * v;
 	return Matrix3x3{ o1, o2, n } * v;
 }
-
-std::default_random_engine generator;
-std::uniform_real_distribution<float> distribution(0, 0.99999f);
-auto rng = std::bind(distribution, generator);
 
 Vector3 getCosLobeVector(float alpha, Vector3 omega_r) {
 	float xi_1 = rng();
@@ -97,8 +100,6 @@ Vector3 getCosLobeVector(float alpha, Vector3 omega_r) {
 	omega_i.Normalize();
 	return omega_i;
 }
-
-
 
 Vector3 getGGXOmega_h(float alpha, Vector3 n) {
 	float xi_1 = rng();
