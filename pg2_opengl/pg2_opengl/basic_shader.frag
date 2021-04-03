@@ -6,6 +6,7 @@ in vec3 unified_normal_es;
 in vec3 position_lcs;
 
 uniform sampler2D irradiance_map;
+uniform sampler2D prefilteredEnv_map;
 uniform sampler2D shadow_map;
 
 out vec4 FragColor;

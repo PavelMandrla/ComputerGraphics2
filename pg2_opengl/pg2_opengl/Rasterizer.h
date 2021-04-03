@@ -29,8 +29,11 @@ private:
 	GLuint fbo_shadow_map { 0 };  // shadow mapping FB
 	GLuint tex_shadow_map { 0 };  // shadow map texture
 
-	GLuint tex_irradiance_map{ 0 };
+	GLuint tex_irradiance_map { 0 };
 	void initIrradianceMapTexture();
+
+	GLuint tex_prefilteredEnv_map { 0 };
+	void initPrefilteredEnvMapTexture();
 
 public:
 	Rasterizer(int width, int height, float fovY, Vector3 viewFrom, Vector3 viewAt);
