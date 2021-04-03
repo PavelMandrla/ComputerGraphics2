@@ -10,7 +10,6 @@ uniform sampler2D shadow_map;
 
 out vec4 FragColor;
 
-
 float getShadow(float bias = 0.001f, const int r = 10) {
 	vec2 shadow_texel_size = 1.0f / textureSize(shadow_map, 0);
 	float shadow = 0.0f;
@@ -28,23 +27,22 @@ float getShadow(float bias = 0.001f, const int r = 10) {
 	return shadow;
 }
 
-vec3 getIrradiance() {
+vec3 getIrradiance(float alpha) {
+	const float maxLevel = 8;
+	float x = (alpha - 1000.0f) / -999.999f;
+
 	float p = atan(v_normal.y, v_normal.x);
 	float phi = (p < 0) ? p + 2 * M_PI : p;
 	float theta = acos(v_normal.z);
 
-
 	vec2 uv = vec2(phi / (2 * M_PI), theta / M_PI);
-	//vec2 uv = vec2(0.5, 0.5);
 
-	return texture(irradiance_map, uv).rgb;
+	return texture(irradiance_map, uv, x * maxLevel).rgb;
 }
 
 void main( void ) {	
-	//vec3 texel = texture(irradiance_map, uv, x * max_level).rgb;
 
-	//FragColor = vec4( 0.5, 0.7, 0.4, 1.0f ) * getShadow();
-	FragColor = vec4(getIrradiance(), 1.0f) * getShadow();
+	FragColor = vec4(getIrradiance(0.02f), 1.0f) * getShadow();
 
 	//NORMAL SHADER
 	//vec3 color  = (v_normal + 1) / 2;

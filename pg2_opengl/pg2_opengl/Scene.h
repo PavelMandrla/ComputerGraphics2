@@ -31,11 +31,9 @@ public:
 
 	int getVertexStride() { return this->vertex_stride; };
 
-	Texture3f getIrradianceMap(int width, int height);
+	Texture3f getPerfectIrradianceMap(int width, int height);
 
-	Texture3f getIrradianceMap(std::string path);
-
-	Texture3f getPrefilteredEnvMap(float alpha, int width, int height);
+	Texture3f getIrradianceMap(float alpha, int width, int height);
 
 	Texture3f getIntegrationMap(int width, int height);
 };

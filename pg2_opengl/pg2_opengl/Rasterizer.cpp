@@ -56,23 +56,26 @@ static void cursor_position_callback(GLFWwindow* window, double xpos, double ypo
 }
 
 void Rasterizer::initIrradianceMapTexture() {
-	auto mapTex = this->scene->getIrradianceMap(128, 64);
-	//auto mapTex = Texture3f("D:\\prg\\cpp\\ComputerGraphics2\\data\\irradianceMap.exr");
+	int level_count = 8;
 
 	glGenTextures(1, &tex_irradiance_map);
 	glBindTexture(GL_TEXTURE_2D, tex_irradiance_map);
 
 	if (glIsTexture(tex_irradiance_map)) {
-		// Give the image to OpenGL
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, mapTex.width(), mapTex.height(), 0, GL_RGB, GL_FLOAT, mapTex.data());
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, level_count - 1);
+
+		for (int i = 0; i < level_count; i++) {
+			auto tex = Texture3f("D:\\prg\\cpp\\ComputerGraphics2\\data\\background\\ir_map\\" + std::to_string(i) + ".exr");
+			glTexImage2D(GL_TEXTURE_2D, i, GL_RGB32F, tex.width(), tex.height(), 0, GL_RGB, GL_FLOAT, tex.data());
+		}
 	}
 
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -144,9 +147,19 @@ void Rasterizer::initPrograms() {	///řeší vytvoření vertex a fragment shade
 	this->shadowMappingShader = std::make_shared<ShaderProgram>("shadowMap_shader.vert", "shadowMap_shader.frag");
 }
 
+inline float f(float x) {
+	return -999.999f * x + 1000.0f;
+}
+
 void Rasterizer::loadScene(std::string file_name, std::string background_file) {
 	this->scene = std::make_shared<Scene>(file_name, background_file);
-	//this->scene->getIrradianceMap(512, 256).Save("D:\\prg\\cpp\\irradianceMap.exr");
+	//this->scene->getPrefilteredEnvMap(500, 256, 128).Save("D:\\prg\\cpp\\ir_map\\1.exr");
+	/*
+	int width = 512;
+	for (int i = 0; i < 8; i++, width /= 2) {
+		float alpha = f(float(i) / 7.0f);
+		scene->getPrefilteredEnvMap(alpha, width, width / 2).Save("D:\\prg\\cpp\\ir_map\\" + std::to_string(i) + ".exr");
+	}*/
 }
 
 void Rasterizer::initBuffers() {	

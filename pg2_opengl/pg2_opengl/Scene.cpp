@@ -46,7 +46,7 @@ Scene::Scene(std::string& file_name, std::string& background_file) {
 	this->vertex_stride = sizeof(MyVertex);
 }
 
-Texture3f Scene::getIrradianceMap(int width, int height) {
+Texture3f Scene::getPerfectIrradianceMap(int width, int height) {
 	Texture3f result(width, height);
 
 	for (int x = 0; x < result.width(); x++) {
@@ -63,10 +63,6 @@ Texture3f Scene::getIrradianceMap(int width, int height) {
 	//result.Save("D:\\prg\\cpp\\save_test.exr");
 	
 	return result;
-}
-
-Texture3f Scene::getIrradianceMap(std::string path) {
-	return Texture3f(path);
 }
 
 Vector3 rotateVector(Vector3 v, Vector3 n) {
@@ -125,7 +121,7 @@ Vector3 getGGXOmega_i(float alpha, Vector3 n, Vector3 omega_o) {	//omega_o -> ey
 	return getReflectedVector(omega_o, omega_h);
 }
 
-Texture3f Scene::getPrefilteredEnvMap(float alpha, int width, int height) {
+Texture3f Scene::getIrradianceMap(float alpha, int width, int height) {
 	Texture3f result(width, height);
 
 	for (int x = 0; x < result.width(); x++) {
@@ -136,13 +132,10 @@ Texture3f Scene::getPrefilteredEnvMap(float alpha, int width, int height) {
 			
 			Vector3 reflectedVector(phi, theta);
 
-			int N = 100;
+			int N = 200;
 			Color3f sampleSum({0,0,0});
 			for (int i = 0; i < N; i++) {
 				auto sph_omega_i = getCosLobeVector(alpha, reflectedVector).getSphericalCoords();
-				//auto sph_omega_i = reflectedVector.getSphericalCoords();
-				//auto sph_omega_i = rotateVector(Vector3(0,0,1.0f), reflectedVector).getSphericalCoords();
-
 				
 				float u = sph_omega_i.first / (2 * M_PI);
 				float v = sph_omega_i.second / M_PI;
@@ -153,8 +146,6 @@ Texture3f Scene::getPrefilteredEnvMap(float alpha, int width, int height) {
 			result.data()[size_t(x) + size_t(y) * size_t(result.width())] = Color3f::toLinear(sampleSum);
 		}
 	}
-	//result.Save("D:\\prg\\cpp\\save_test.exr");
-
 	return result;
 }
 
