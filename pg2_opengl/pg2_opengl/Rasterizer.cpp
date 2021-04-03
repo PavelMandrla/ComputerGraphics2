@@ -153,13 +153,14 @@ inline float f(float x) {
 
 void Rasterizer::loadScene(std::string file_name, std::string background_file) {
 	this->scene = std::make_shared<Scene>(file_name, background_file);
-	//this->scene->getPrefilteredEnvMap(500, 256, 128).Save("D:\\prg\\cpp\\ir_map\\1.exr");
-	/*
-	int width = 512;
+//	this->scene->getPrefilteredEnvMap(500, 256, 128).Save("D:\\prg\\cpp\\env_map\\1.exr");
+	
+	int width = 1024;
 	for (int i = 0; i < 8; i++, width /= 2) {
 		float alpha = f(float(i) / 7.0f);
-		scene->getPrefilteredEnvMap(alpha, width, width / 2).Save("D:\\prg\\cpp\\ir_map\\" + std::to_string(i) + ".exr");
-	}*/
+		scene->getPrefilteredEnvMap(alpha, width, width / 2).Save("D:\\prg\\cpp\\ComputerGraphics2\\data\\background\\env_map\\" + std::to_string(i) + ".exr");
+		//scene->getIrradianceMap(alpha, width, width / 2).Save("D:\\prg\\cpp\\ir_map\\" + std::to_string(i) + ".exr");
+	}
 }
 
 void Rasterizer::initBuffers() {	

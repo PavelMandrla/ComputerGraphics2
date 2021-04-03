@@ -96,6 +96,10 @@ public:
 		while (nU >= 1.0f) nU -= 1.0f;
 		int x = int(u * width_);
 		int y = int(v * height_);
+		
+		if (u >= 1) x = height_ - 1;
+		if (u < 0) x = 0;
+		
 		if (v >= 1) y = height_ - 1;
 		if (v < 0) y = 0;
 

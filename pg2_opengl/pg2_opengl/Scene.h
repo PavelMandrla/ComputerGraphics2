@@ -35,6 +35,9 @@ public:
 
 	Texture3f getIrradianceMap(float alpha, int width, int height);
 
+	Texture3f getPrefilteredEnvMap(float alpha, int width, int height);
+
 	Texture3f getIntegrationMap(int width, int height);
+
 };
 

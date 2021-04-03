@@ -143,9 +143,39 @@ Texture3f Scene::getIrradianceMap(float alpha, int width, int height) {
 				sampleSum += this->background->texel(u, v);
 			}
 			sampleSum *= 1 / float(N);
-			result.data()[size_t(x) + size_t(y) * size_t(result.width())] = Color3f::toLinear(sampleSum);
+			result.data()[size_t(x) + size_t(y) * size_t(result.width())] = Color3f::toSRGB(sampleSum);
 		}
 	}
+	return result;
+}
+
+Texture3f Scene::getPrefilteredEnvMap(float alpha, int width, int height) {
+	Texture3f result(width, height);
+
+	for (int x = 0; x < result.width(); x++) {
+		float phi = float(x) * 2.0f * float(M_PI) / float(result.width());
+
+		for (int y = 0; y < result.height(); y++) {
+			float theta = float(y) * M_PI / float(result.height());
+
+			Vector3 normal(phi, theta);
+			
+			int N = 200;
+			Color3f sampleSum({ 0,0,0 });
+			for (int i = 0; i < N; i++) {
+				auto sph_omega_i = getGGXOmega_i(alpha, normal, normal).getSphericalCoords();;
+				float u = sph_omega_i.first / (2 * M_PI);
+				float v = sph_omega_i.second / M_PI;
+
+				sampleSum += this->background->texel(u, v);
+			}
+			sampleSum *= 1 / float(N);
+			auto tmp = Color3f::toSRGB(sampleSum);
+			result.data()[size_t(x) + size_t(y) * size_t(result.width())] = tmp;
+
+		}
+	}
+
 	return result;
 }
 
