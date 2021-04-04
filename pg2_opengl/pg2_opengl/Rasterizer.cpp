@@ -177,7 +177,7 @@ inline float f(float x) {
 
 void Rasterizer::loadScene(std::string file_name, std::string background_file) {
 	this->scene = std::make_shared<Scene>(file_name, background_file);
-	
+	scene->getIntegrationMap(200, 200).Save("D:\\prg\\cpp\\ComputerGraphics2\\data\\background\\help_me.exr");
 	/*int width = 1024;
 	for (int i = 0; i < 8; i++, width /= 2) {
 		float alpha = f(float(i) / 7.0f);

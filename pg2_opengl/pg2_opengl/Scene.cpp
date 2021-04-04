@@ -182,22 +182,34 @@ Texture3f Scene::getPrefilteredEnvMap(float alpha, int width, int height) {
 float G(float alpha, float ct_o, float ct_i) {
 	float alpha_2 = pow(alpha, 2);
 	float top = 2.0f * ct_o * ct_i;
-	float bottom = ct_o * sqrt(alpha_2 + (1 - alpha_2) * pow(ct_i, 2)) + ct_i * sqrt(alpha_2 + (1 - alpha_2) * pow(ct_o, 2));
-	return top / bottom;
+
+	float b1 = ct_o * sqrt(alpha_2 + (1 - alpha_2) * pow(ct_i, 2));
+	float b2 = ct_i * sqrt(alpha_2 + (1 - alpha_2) * pow(ct_o, 2));
+	return top / (b1 + b2);
 }
 
 Color3f getIntegrationMapValue(float alpha, float ct_o) {
 	Vector3 n = { 0.0f, 0.0f, 1.0f };
 	Vector3 omega_o = { float(sqrt(1 - pow(ct_o, 2))), 0, ct_o };
+	omega_o.Normalize();
 	
-	float sum_s = 0;
-	float sum_b = 0;
-	int N = 1000;
+	float sum_g = 0;
+	float sum_r = 0;
+	int N = 100;
+
 	for (int i = 0; i < N; i++) {
 		Vector3 omega_h = getGGXOmega_h(alpha, n);
-		Vector3 omega_i = getReflectedVector(omega_o, omega_h);
-
 		float ct_h = omega_o.DotProduct(omega_h);
+		while (ct_h < 0.0f) {
+			omega_h = getGGXOmega_h(alpha, n);
+			ct_h = omega_o.DotProduct(omega_h);
+		}
+
+		Vector3 omega_i = getReflectedVector(omega_o * -1, omega_h);
+		omega_h.Normalize();
+		omega_i.Normalize();
+
+		
 		float ct_n = n.DotProduct(omega_h);
 		float ct_i = n.DotProduct(omega_i);
 
@@ -207,13 +219,18 @@ Color3f getIntegrationMapValue(float alpha, float ct_o) {
 		auto b = ct_o * ct_n;
 		auto c = pow(1 - ct_h, 5);
 
-		sum_s += (a / b) * c;
-		sum_b += (a / b) * (1 - c);
+		auto tmp_r = (a / b) * (1 - c);
+		auto tmp_g = (a / b) * c;
+		sum_r += tmp_r < 0 ? 0.0f : tmp_r;
+		sum_g += tmp_g < 0 ? 0.0f : tmp_g;
+		//sum_r += (a / b) * (1 - c);
+		//sum_g += (a / b) * c;
+		
 	}
 
 	auto result = Color3f({
-		sum_s / float(N),
-		sum_b / float(N),
+		sum_r / float(N),
+		sum_g / float(N),
 		0.0f
 		});
 
@@ -222,18 +239,18 @@ Color3f getIntegrationMapValue(float alpha, float ct_o) {
 
 Texture3f Scene::getIntegrationMap(int width, int height) {
 	Texture3f result(width, height);
-	float dx = 1.0f / float(width);
-	float dy = 1.0f / float(height);
+	
+	float dx = 1.0f / float(width - 1);
+	float dy = 1.0f / float(height - 1);
 
-	float dAlpha = (1000000 - 1) / float(height);
 	for (int x = 1; x < width; x++) {
 		float ct_o = float(x) * dx;
+	
 		for (int y = 1; y < height; y++) {
-			//float ai = float(y) * y;
-			//float alpha = float(y) * dAlpha / 1000;
-			float alpha = 0.001;
+			float alpha = float(y) * dy;
 
-			result.data()[size_t(x) + size_t(y) * size_t(result.width())] = getIntegrationMapValue(alpha, ct_o);
+			int i = size_t(x) + size_t(y) * size_t(result.width());
+			result.data()[i] = getIntegrationMapValue(alpha, ct_o);
 		}
 	}
 
