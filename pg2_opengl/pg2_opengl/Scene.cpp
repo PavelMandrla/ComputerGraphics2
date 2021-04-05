@@ -118,7 +118,7 @@ Vector3 getReflectedVector(Vector3 d, Vector3 n) {
 
 Vector3 getGGXOmega_i(float alpha, Vector3 n, Vector3 omega_o) {	//omega_o -> eye direction
 	auto omega_h = getGGXOmega_h(alpha, n);							//omega_h ->
-	return getReflectedVector(omega_o, omega_h);
+	return getReflectedVector(omega_o * -1, omega_h);
 }
 
 Texture3f Scene::getIrradianceMap(float alpha, int width, int height) {
@@ -160,7 +160,7 @@ Texture3f Scene::getPrefilteredEnvMap(float alpha, int width, int height) {
 
 			Vector3 normal(phi, theta);
 			
-			int N = 200;
+			int N = 100;
 			Color3f sampleSum({ 0,0,0 });
 			for (int i = 0; i < N; i++) {
 				auto sph_omega_i = getGGXOmega_i(alpha, normal, normal).getSphericalCoords();;
@@ -195,7 +195,7 @@ Color3f getIntegrationMapValue(float alpha, float ct_o) {
 	
 	float sum_g = 0;
 	float sum_r = 0;
-	int N = 100;
+	int N = 1000;
 
 	for (int i = 0; i < N; i++) {
 		Vector3 omega_h = getGGXOmega_h(alpha, n);
@@ -223,8 +223,6 @@ Color3f getIntegrationMapValue(float alpha, float ct_o) {
 		auto tmp_g = (a / b) * c;
 		sum_r += tmp_r < 0 ? 0.0f : tmp_r;
 		sum_g += tmp_g < 0 ? 0.0f : tmp_g;
-		//sum_r += (a / b) * (1 - c);
-		//sum_g += (a / b) * c;
 		
 	}
 

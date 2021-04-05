@@ -172,18 +172,25 @@ void Rasterizer::initPrograms() {	///řeší vytvoření vertex a fragment shade
 }
 
 inline float f(float x) {
-	return -999.999f * x + 1000.0f;
+	return exp(7 * x - 7);
 }
 
 void Rasterizer::loadScene(std::string file_name, std::string background_file) {
 	this->scene = std::make_shared<Scene>(file_name, background_file);
-	scene->getIntegrationMap(200, 200).Save("D:\\prg\\cpp\\ComputerGraphics2\\data\\background\\help_me.exr");
-	/*int width = 1024;
+	//scene->getIntegrationMap(256, 256).Save("D:\\prg\\cpp\\ComputerGraphics2\\data\\background\\help_me.exr");
+	int width = 1024;
+
+	//scene->getPrefilteredEnvMap(0.01f, 256, 128).Save("D:\\prg\\cpp\\tststs.exr");
+	
+	float dX = (1.0 - 0.001) / 7.0;
 	for (int i = 0; i < 8; i++, width /= 2) {
-		float alpha = f(float(i) / 7.0f);
+		//float alpha = f(float(i) / 7.0f);
+		//float alpha = 0.001 + (float(i) * dAlpha);
+		float alpha = f(float(i) * dX);
 		scene->getPrefilteredEnvMap(alpha, width, width / 2).Save("D:\\prg\\cpp\\ComputerGraphics2\\data\\background\\env_map\\" + std::to_string(i) + ".exr");
-		scene->getIrradianceMap(alpha, width, width / 2).Save("D:\\prg\\cpp\\ComputerGraphics2\\data\\background\\ir_map\\" + std::to_string(i) + ".exr");
-	}*/
+		//scene->getIrradianceMap(alpha, width, width / 2).Save("D:\\prg\\cpp\\ComputerGraphics2\\data\\background\\ir_map\\" + std::to_string(i) + ".exr");
+	}
+	
 }
 
 void Rasterizer::initBuffers() {	
