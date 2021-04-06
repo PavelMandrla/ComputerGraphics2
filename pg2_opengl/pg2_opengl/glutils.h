@@ -3,6 +3,8 @@
 
 void SetMatrix4x4( const GLuint program, const GLfloat * data, const char * matrix_name );
 
+void SetVec3(const GLuint program, const GLfloat* data, const char* vecName);
+
 void SetSampler(const GLuint program, GLenum texture_unit, const char* sampler_name);
 
 #endif

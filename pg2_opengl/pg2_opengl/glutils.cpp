@@ -11,6 +11,17 @@ void SetMatrix4x4( const GLuint program, const GLfloat * data, const char * matr
 	}
 }
 
+void SetVec3(const GLuint program, const GLfloat* data, const char* vecName) {
+	const GLint location = glGetUniformLocation(program, vecName);
+
+	if (location == -1) {
+		printf("Vector '%s' not found in active shader.\n", vecName);
+	} else {
+		//glUniformMatrix4fv(location, 1, GL_TRUE, data);
+		glUniform3fv(location, 1, data);
+	}
+}
+
 void SetSampler(const GLuint program, GLenum texture_unit, const char* sampler_name) {
 	const GLint location = glGetUniformLocation(program, sampler_name);
 

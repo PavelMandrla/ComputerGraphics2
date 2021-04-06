@@ -35,6 +35,9 @@ private:
 	GLuint tex_prefilteredEnv_map { 0 };
 	void initPrefilteredEnvMapTexture();
 
+	GLuint tex_integration_map{ 0 };
+	void initIntegration_map();
+
 public:
 	Rasterizer(int width, int height, float fovY, Vector3 viewFrom, Vector3 viewAt);
 

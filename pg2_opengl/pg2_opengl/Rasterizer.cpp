@@ -105,6 +105,25 @@ void Rasterizer::initPrefilteredEnvMapTexture() {
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+void Rasterizer::initIntegration_map() {
+	glGenTextures(1, &tex_integration_map);
+	glBindTexture(GL_TEXTURE_2D, tex_integration_map);
+
+	if (glIsTexture(tex_integration_map)) {
+		auto tex = Texture3f("D:\\prg\\cpp\\ComputerGraphics2\\data\\background\\integration_map.exr");
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, tex.width(), tex.height(), 0, GL_RGB, GL_FLOAT, tex.data());
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	}
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 Rasterizer::Rasterizer(int width, int height, float fovY, Vector3 viewFrom, Vector3 viewAt) {
 	this->camera = std::make_shared<Camera>(width, height, fovY, viewFrom, viewAt);
 	this->light = std::make_shared<Directional>(Vector3 {0, 10, 10}, Vector3 {0, 0, 0}, deg2rad(45), 1024, 1024);
@@ -177,6 +196,7 @@ inline float f(float x) {
 
 void Rasterizer::loadScene(std::string file_name, std::string background_file) {
 	this->scene = std::make_shared<Scene>(file_name, background_file);
+	/*
 	//scene->getIntegrationMap(256, 256).Save("D:\\prg\\cpp\\ComputerGraphics2\\data\\background\\help_me.exr");
 	int width = 1024;
 
@@ -190,7 +210,7 @@ void Rasterizer::loadScene(std::string file_name, std::string background_file) {
 		scene->getPrefilteredEnvMap(alpha, width, width / 2).Save("D:\\prg\\cpp\\ComputerGraphics2\\data\\background\\env_map\\" + std::to_string(i) + ".exr");
 		//scene->getIrradianceMap(alpha, width, width / 2).Save("D:\\prg\\cpp\\ComputerGraphics2\\data\\background\\ir_map\\" + std::to_string(i) + ".exr");
 	}
-	
+	*/	
 }
 
 void Rasterizer::initBuffers() {	
@@ -222,6 +242,7 @@ void Rasterizer::initBuffers() {
 	
 	this->initIrradianceMapTexture();
 	this->initPrefilteredEnvMapTexture();
+	this->initIntegration_map();
 	this->initShadowDepthBuffer();
 }
 
@@ -299,17 +320,22 @@ void Rasterizer::mainLoop() {
 		SetMatrix4x4(mainShader->program, (GLfloat*) camera->getMVn().data(), "mvn");
 		SetMatrix4x4(mainShader->program, (GLfloat*) light->getMVP().data(), "mlp");
 
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, tex_irradiance_map);
-		SetSampler(mainShader->program, 1, "irradiance_map");
+		SetVec3(mainShader->program, (GLfloat*) camera->getViewDir().data, "cameraDir");
 
-		glActiveTexture(GL_TEXTURE2);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, tex_irradiance_map);
+		SetSampler(mainShader->program, 0, "irradiance_map");
+
+		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, tex_prefilteredEnv_map);
 		SetSampler(mainShader->program, 1, "prefilteredEnv_map");
 
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, tex_integration_map);
+		SetSampler(mainShader->program, 2, "integration_map");
+
 		glActiveTexture(GL_TEXTURE3);
 		glBindTexture(GL_TEXTURE_2D, tex_shadow_map);
-
 		SetSampler(mainShader->program, 3, "shadow_map");
 
 		glDrawArrays( GL_TRIANGLES, 0, this->scene->getVerticies().size() );

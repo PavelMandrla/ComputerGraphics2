@@ -9,12 +9,16 @@ uniform mat4 mv;
 uniform mat4 mvn;
 uniform mat4 mlp;
 
+uniform vec3 cameraDir;
+
 out vec3 v_normal;
 out vec3 unified_normal_es;
 out vec3 position_lcs;
+out vec3 v_cameraDir;
 
 void main( void ) {
 	v_normal = normalize(normal);
+	v_cameraDir = cameraDir;
 
 	unified_normal_es = normalize((mvn * vec4(normal.xyz, 0.0f)).xyz);
 	vec4 hit_es = mv * vec4(position.xyz, 1.0f);
