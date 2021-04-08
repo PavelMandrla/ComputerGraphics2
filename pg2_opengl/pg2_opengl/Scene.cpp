@@ -121,7 +121,23 @@ Vector3 getGGXOmega_i(float alpha, Vector3 n, Vector3 omega_o) {	//omega_o -> ey
 	return getReflectedVector(omega_o * -1, omega_h);
 }
 
-Texture3f Scene::getIrradianceMap(float alpha, int width, int height) {
+Vector3 getCosWeightedSample(Vector3 omega_r) {
+	float xi_1 = rng();
+	float xi_2 = rng();
+
+	Vector3 dir = {
+		float(cos(2 * M_PI * xi_1) * sqrt(1 - xi_2)),
+		float(sin(2 * M_PI * xi_1) * sqrt(1 - xi_2)),
+		float(sqrt(xi_2))
+	};
+	dir.Normalize();
+
+	auto omega_i = rotateVector(dir, omega_r);
+	omega_i.Normalize();
+	return omega_i;
+}
+
+Texture3f Scene::getIrradianceMap(int width, int height) {
 	Texture3f result(width, height);
 
 	for (int x = 0; x < result.width(); x++) {
@@ -135,7 +151,7 @@ Texture3f Scene::getIrradianceMap(float alpha, int width, int height) {
 			int N = 200;
 			Color3f sampleSum({0,0,0});
 			for (int i = 0; i < N; i++) {
-				auto sph_omega_i = getCosLobeVector(alpha, reflectedVector).getSphericalCoords();
+				auto sph_omega_i = getCosWeightedSample(reflectedVector).getSphericalCoords();
 				
 				float u = sph_omega_i.first / (2 * M_PI);
 				float v = sph_omega_i.second / M_PI;

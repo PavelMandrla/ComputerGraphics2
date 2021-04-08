@@ -38,19 +38,20 @@ vec2 getUV(vec3 v) {
 	return vec2(phi / (2 * M_PI), theta / M_PI);
 }
 
-vec3 getIrradiance(float x) {
-	const float maxLevel = 8;
-	//float x = (alpha - 1000.0f) / -999.999f;
+vec3 getIrradiance() {
 	vec2 uv = getUV(v_normal);
 
-	return texture(irradiance_map, uv, x * maxLevel).rgb;
+	return texture(irradiance_map, uv).rgb;
 }
 
 vec3 getPrefEnv(float alpha) {
 	const float maxLevel = 8;
 	float x = (log(alpha) + 7.0f) / 7.0f;
 
-	vec3 omega_i = v_cameraDir - 2 * dot(v_cameraDir, unified_normal_es) * unified_normal_es;
+	//v_normal, -1*v_cameraDir;
+	//vec3 omega_i = vec3(0,1,0) - 2 * dot(vec3(0,1,0), unified_normal_es) * unified_normal_es;
+	vec3 omega_i = v_cameraDir - 2 * dot( v_cameraDir, v_normal) * v_normal;
+
 	vec2 uv = getUV(omega_i);
 
 	return texture(prefilteredEnv_map, uv, x * maxLevel).rgb;
@@ -68,12 +69,15 @@ float Fresnell(float ior, float ct_h) {
 }
 
 vec3 getColorVal() {
-	float alpha = 0.2f;
-	float metalness = 0.54f;
+	float alpha = 0.1f;
+	float metalness = 0.1;
 	vec3 albedo = vec3(0.95f, 0.50f, 1.0f);
 	float ior = 1.0f;
 
-	float ct_o = dot(v_normal, -1 * v_cameraDir);
+	float ct_o = dot(v_normal, -1*v_cameraDir);
+	if (ct_o < 0) ct_o *= -1;
+	
+	//float ct_o = dot(vec3(0.0f, 1.0f, 0.0f), normalize(unified_normal_es));
 
 	float k_s = Fresnell(ior, ct_o);					// K_s
 	float k_d = (1 - k_s) * (1 - metalness);			// K_d
@@ -82,22 +86,18 @@ vec3 getColorVal() {
 	float s = sb_tmp.x;									// s
 	float b = sb_tmp.y;									// b
 
-	vec3 Ld = (albedo / M_PI) * getIrradiance(alpha);
+	vec3 Ld = (albedo / M_PI) * getIrradiance();
 	vec3 Lr = getPrefEnv(alpha);
 
-	//return k_d * Ld;
-	return sb_tmp;
-	//return k_d*Ld + (k_s*s + b)*Lr;
-	//return albedo;
+	return k_d * Ld; //+ (k_s*s + b) * Lr;
 }
 
 void main( void ) {	
-
-	FragColor = vec4(getColorVal(), 1.0f) * getShadow();
+	FragColor = vec4(getColorVal(), 1.0f);// * getShadow();
 	
 	//FragColor = vec4(getIrradiance(0.02f), 1.0f) * getShadow();
 
 	//NORMAL SHADER
-	//vec3 color  = (v_normal + 1) / 2;
+	//vec3 color  = (unified_normal_es + 1) / 2;
 	//FragColor = vec4( color.xyz, 1.0f ) * getShadow();
 }

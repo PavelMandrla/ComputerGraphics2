@@ -56,25 +56,20 @@ static void cursor_position_callback(GLFWwindow* window, double xpos, double ypo
 }
 
 void Rasterizer::initIrradianceMapTexture() {
-	int level_count = 8;
 
 	glGenTextures(1, &tex_irradiance_map);
 	glBindTexture(GL_TEXTURE_2D, tex_irradiance_map);
 
 	if (glIsTexture(tex_irradiance_map)) {
+		auto tex = Texture3f("D:\\prg\\cpp\\ComputerGraphics2\\data\\background\\ir_map.exr");
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, tex.width(), tex.height(), 0, GL_RGB, GL_FLOAT, tex.data());
+
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, level_count - 1);
-
-		for (int i = 0; i < level_count; i++) {
-			auto tex = Texture3f("D:\\prg\\cpp\\ComputerGraphics2\\data\\background\\ir_map\\" + std::to_string(i) + ".exr");
-			glTexImage2D(GL_TEXTURE_2D, i, GL_RGB32F, tex.width(), tex.height(), 0, GL_RGB, GL_FLOAT, tex.data());
-		}
 	}
 
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -196,11 +191,14 @@ inline float f(float x) {
 
 void Rasterizer::loadScene(std::string file_name, std::string background_file) {
 	this->scene = std::make_shared<Scene>(file_name, background_file);
+	
+	//int width = 512;
+	//scene->getIrradianceMap(width, width / 2).Save("D:\\prg\\cpp\\ComputerGraphics2\\data\\background\\ir_map.exr");
 	/*
 	//scene->getIntegrationMap(256, 256).Save("D:\\prg\\cpp\\ComputerGraphics2\\data\\background\\help_me.exr");
 	int width = 1024;
-
 	//scene->getPrefilteredEnvMap(0.01f, 256, 128).Save("D:\\prg\\cpp\\tststs.exr");
+	
 	
 	float dX = (1.0 - 0.001) / 7.0;
 	for (int i = 0; i < 8; i++, width /= 2) {
@@ -330,7 +328,7 @@ void Rasterizer::mainLoop() {
 		glBindTexture(GL_TEXTURE_2D, tex_prefilteredEnv_map);
 		SetSampler(mainShader->program, 1, "prefilteredEnv_map");
 
-		glActiveTexture(GL_TEXTURE1);
+		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, tex_integration_map);
 		SetSampler(mainShader->program, 2, "integration_map");
 
