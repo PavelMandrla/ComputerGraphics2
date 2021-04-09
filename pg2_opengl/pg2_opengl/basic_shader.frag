@@ -4,7 +4,8 @@
 in vec3 v_normal;
 in vec3 unified_normal_es;
 in vec3 position_lcs;
-in vec3 v_cameraDir;
+in vec3 omega_o_es;
+in vec3 omega_o;
 
 uniform sampler2D irradiance_map;
 uniform sampler2D prefilteredEnv_map;
@@ -46,54 +47,52 @@ vec3 getIrradiance() {
 
 vec3 getPrefEnv(float alpha) {
 	const float maxLevel = 8;
+	
 	float x = (log(alpha) + 7.0f) / 7.0f;
+	vec3 omega_i = omega_o - 2 * dot(omega_o, v_normal) * v_normal;
 
-	//v_normal, -1*v_cameraDir;
-	//vec3 omega_i = vec3(0,1,0) - 2 * dot(vec3(0,1,0), unified_normal_es) * unified_normal_es;
-	vec3 omega_i = v_cameraDir - 2 * dot( v_cameraDir, v_normal) * v_normal;
-
-	vec2 uv = getUV(omega_i);
-
-	return texture(prefilteredEnv_map, uv, x * maxLevel).rgb;
+	return texture(prefilteredEnv_map, getUV(omega_i), x * maxLevel).rgb;
 }
 
 vec3 getIntegrationMapVal(float alpha, float ct_o) {
-	vec2 uv = vec2(ct_o, alpha);
+	float x = (log(alpha) + 7.0f) / 7.0f;
+	vec2 uv = vec2(ct_o, x);
 	return texture(integration_map, uv).rgb;
 }
 
-float Fresnell(float ior, float ct_h) {
-	float f_0 = pow((1.0f-ior)/(1.0f+ior), 2);
-
-	return f_0 + (1 - f_0) * pow(1 - ct_h, 5);
+float Fresnell(float ct_o, float n1 = 1.0f, float n2 = 1.0f) {
+	if (ct_o == 0) return 0;
+	float f_0 = pow((n1-n2)/(n1+n2), 2);
+	return f_0 + (1 - f_0) * pow(1 - ct_o, 5);
 }
 
+float Fresnell(float ct_o, float n_i) {
+	if (ct_o == 0) return 0;
+	return n_i + (1 - n_i) * pow(1 - ct_o, 5);
+}
+
+
 vec3 getColorVal() {
+	// MATERIAL VALUES
 	float alpha = 0.1f;
-	float metalness = 0.1;
+	float metalness = 0.2f;
 	vec3 albedo = vec3(0.95f, 0.50f, 1.0f);
-	float ior = 1.0f;
+	float ior2 = 4.0;
 
-	float ct_o = dot(v_normal, -1*v_cameraDir);
-	if (ct_o < 0) ct_o *= -1;
-	
-	//float ct_o = dot(vec3(0.0f, 1.0f, 0.0f), normalize(unified_normal_es));
+	// CALCULATED VALUES
+	float ct_o = dot(unified_normal_es, omega_o_es);
+	float k_s = Fresnell(ct_o, 1.0f, ior2);
+	float k_d = (1 - k_s) * (1 - metalness);
 
-	float k_s = Fresnell(ior, ct_o);					// K_s
-	float k_d = (1 - k_s) * (1 - metalness);			// K_d
-	
-	vec3 sb_tmp = getIntegrationMapVal(alpha, ct_o);	
-	float s = sb_tmp.x;									// s
-	float b = sb_tmp.y;									// b
+	vec3 sb = getIntegrationMapVal(alpha, ct_o);	
+	vec3 Ld = albedo * getIrradiance();
+	vec3 Lr =  getPrefEnv(alpha);
 
-	vec3 Ld = (albedo / M_PI) * getIrradiance();
-	vec3 Lr = getPrefEnv(alpha);
-
-	return k_d * Ld; //+ (k_s*s + b) * Lr;
+	return  k_d*Ld + (k_s*sb.x + sb.y) * Lr;
 }
 
 void main( void ) {	
-	FragColor = vec4(getColorVal(), 1.0f);// * getShadow();
+	FragColor = vec4(getColorVal(), 1.0f) * getShadow();
 	
 	//FragColor = vec4(getIrradiance(0.02f), 1.0f) * getShadow();
 

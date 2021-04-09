@@ -105,7 +105,8 @@ void Rasterizer::initIntegration_map() {
 	glBindTexture(GL_TEXTURE_2D, tex_integration_map);
 
 	if (glIsTexture(tex_integration_map)) {
-		auto tex = Texture3f("D:\\prg\\cpp\\ComputerGraphics2\\data\\background\\integration_map.exr");
+		//auto tex = Texture3f("D:\\prg\\cpp\\ComputerGraphics2\\data\\background\\integration_map.exr");brdf_integration_map_ct_ggx
+		auto tex = Texture3f("D:\\prg\\cpp\\ComputerGraphics2\\data\\background\\brdf_integration_map_ct_ggx.exr");
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, tex.width(), tex.height(), 0, GL_RGB, GL_FLOAT, tex.data());
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -318,7 +319,7 @@ void Rasterizer::mainLoop() {
 		SetMatrix4x4(mainShader->program, (GLfloat*) camera->getMVn().data(), "mvn");
 		SetMatrix4x4(mainShader->program, (GLfloat*) light->getMVP().data(), "mlp");
 
-		SetVec3(mainShader->program, (GLfloat*) camera->getViewDir().data, "cameraDir");
+		SetVec3(mainShader->program, (GLfloat*)camera->getViewFrom().data, "cameraPos");
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, tex_irradiance_map);
@@ -337,9 +338,6 @@ void Rasterizer::mainLoop() {
 		SetSampler(mainShader->program, 3, "shadow_map");
 
 		glDrawArrays( GL_TRIANGLES, 0, this->scene->getVerticies().size() );
-		//glDrawArrays( GL_POINTS, 0, 6 );
-		//glDrawArrays( GL_LINE_LOOP, 0, this->scene->getVerticies().size() );
-		//glDrawElements( GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0 ); // optional - render from an index buffer
 
 		glfwSwapBuffers( window );
 		glfwPollEvents();
