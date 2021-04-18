@@ -7,6 +7,8 @@
 #include "structs.h"
 #include "matrix3x3.h"
 
+#define BYTE unsigned char
+
 template <class T> inline T min( const T a, const T b )
 {
 	if ( a <= b ) return a;
