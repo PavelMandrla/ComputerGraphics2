@@ -40,6 +40,9 @@ private:
 	GLuint tex_integration_map{ 0 };
 	void initIntegration_map();
 
+	GLuint ssbo_materials;
+	void initSSBOMaterials();
+
 public:
 	Rasterizer(int width, int height, float fovY, Vector3 viewFrom, Vector3 viewAt);
 
@@ -77,5 +80,6 @@ public:
 	void mainLoop();
 
 	std::shared_ptr<Camera> getCamera() { return this->camera; };
+
 };
 

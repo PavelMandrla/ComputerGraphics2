@@ -120,6 +120,17 @@ void Rasterizer::initIntegration_map() {
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+void Rasterizer::initSSBOMaterials() {
+	auto materials = this->scene->getMaterials();
+
+	glGenBuffers(1, &ssbo_materials);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_materials);
+	const GLsizeiptr gl_materials_size = sizeof(GLMaterial) * materials.size();
+	glBufferData(GL_SHADER_STORAGE_BUFFER, gl_materials_size, materials.data(), GL_STATIC_DRAW);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo_materials);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+}
+
 Rasterizer::Rasterizer(int width, int height, float fovY, Vector3 viewFrom, Vector3 viewAt) {
 	this->camera = std::make_shared<Camera>(width, height, fovY, viewFrom, viewAt);
 	this->light = std::make_shared<Directional>(Vector3 {0, 10, 10}, Vector3 {0, 0, 0}, deg2rad(45), 1024, 1024);
@@ -179,6 +190,8 @@ int Rasterizer::initDevice() {
 	glViewport(0, 0, camera->getWidth(), camera->getHeight());
 	// GL_LOWER_LEFT (OpenGL) or GL_UPPER_LEFT (DirectX, Windows) and GL_NEGATIVE_ONE_TO_ONE or GL_ZERO_TO_ONE
 	glClipControl( GL_UPPER_LEFT, GL_NEGATIVE_ONE_TO_ONE );
+
+	
 }
 
 void Rasterizer::initPrograms() {	///řeší vytvoření vertex a fragment shader
@@ -248,6 +261,7 @@ void Rasterizer::initBuffers() {
 	this->initPrefilteredEnvMapTexture();
 	this->initIntegration_map();
 	this->initShadowDepthBuffer();
+	this->initSSBOMaterials();
 }
 
 int Rasterizer::initShadowDepthBuffer() {
@@ -348,3 +362,4 @@ void Rasterizer::mainLoop() {
 		glfwPollEvents();
 	}
 }
+

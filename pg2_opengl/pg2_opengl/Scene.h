@@ -72,7 +72,5 @@ public:
 
 	Texture3f getIntegrationMap(int width, int height);
 
-	
-
 };
 

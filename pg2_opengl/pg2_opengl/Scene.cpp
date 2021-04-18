@@ -2,7 +2,9 @@
 #include "Scene.h"
 #include "objloader.h"
 #include "matrix3x3.h"
+#include "glutils.h"
 #include <random>
+
 
 std::default_random_engine generator;
 std::uniform_real_distribution<float> distribution(0, 0.99999f);
@@ -13,31 +15,46 @@ void Scene::loadMaterials() {
 		GLMaterial m;
 
 		// DIFUSE
-		if (material->hasTexture(Material::kDiffuseMapSlot)) {
+		auto tex_diffuse = material->texture(Material::kDiffuseMapSlot);
+		if (tex_diffuse) {
+			GLuint id = 0;
+			CreateBindlessTexture(id, m.tex_diffuse_handle, tex_diffuse->width(), tex_diffuse->height(), tex_diffuse->data());
 			m.albedo = Color3f({ 1, 1, 1 });
-			//TODO -> add texture handle
 		} else {
+			GLuint id = 0;
+			GLubyte data[] = { 255, 255, 255, 255 }; // opaque white
+			CreateBindlessTexture(id, m.tex_diffuse_handle, 1, 1, data);
 			m.albedo = material->diffuse();
 		}
 
 		// ROUGHNESS, METALNESS
-		if (material->hasTexture(Material::kRoughnessMapSlot)) {
+		auto tex_rma = material->texture(Material::kRoughnessMapSlot);
+		if (tex_rma) {
+			GLuint id = 0;
+			CreateBindlessTexture(id, m.tex_rma_handle, tex_rma->width(), tex_rma->height(), tex_rma->data());
 			m.rma = Color3f({ 1, 1, 1 });
-			//TODO -> add texture handle
 		} else {
+			GLuint id = 0;
+			GLubyte data[] = { 255, 255, 255, 255 }; // opaque white
+			CreateBindlessTexture(id, m.tex_rma_handle, 1, 1, data);
 			m.rma = Color3f({ material->roughness_, material->metallicness, 1.0f });
 		}
 		
 		// NORMAL MAP
-		if (material->hasTexture(Material::kNormalMapSlot)) {
+		auto tex_norm = material->texture(Material::kNormalMapSlot);
+		if (tex_norm) {
+			GLuint id = 0;
+			CreateBindlessTexture(id, m.tex_normal_handle, tex_norm->width(), tex_norm->height(), tex_norm->data());
 			m.normal = Color3f({ 1, 1, 1 });
-			//TODO -> add texture handle
 		} else {
+			GLuint id = 0;
+			GLubyte data[] = { 255, 255, 255, 255 }; // opaque white
+			CreateBindlessTexture(id, m.tex_normal_handle, 1, 1, data);
 			m.normal = Color3f({ 0, 0, 1 });
 		}
 
+		this->pointerIndexMap.emplace(material, this->materials.size());
 		this->materials.push_back(m);
-		this->pointerIndexMap.emplace(material, this->materials.size()); // IMPORTANT -> INDEXES ARE SHIFTED BY 1, INDEX 0 IS RESERVED FOR WHEN THE TEXTURE FOR THE MATERIAL IS MISSING
 	}
 }
 

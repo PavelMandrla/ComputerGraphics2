@@ -1,4 +1,7 @@
 #version 460 core
+#extension GL_ARB_bindless_texture : require
+#extension GL_ARB_gpu_shader_int64 : require 
+
 #define M_PI 3.1415926535897932384626433832795
 
 in vec3 v_normal;
@@ -6,6 +9,7 @@ in vec3 unified_normal_es;
 in vec3 position_lcs;
 in vec3 omega_o_es;
 in vec3 omega_o;
+flat in int mat_index;
 
 uniform sampler2D irradiance_map;
 uniform sampler2D prefilteredEnv_map;
@@ -13,6 +17,21 @@ uniform sampler2D integration_map;
 uniform sampler2D shadow_map;
 
 out vec4 FragColor;
+
+struct Material {
+	vec3 diffuse;
+	uint64_t tex_diffuse;
+
+	vec3 rma;
+	uint64_t tex_rma;
+
+	vec3 norm;
+	uint64_t tex_norm;
+};
+
+layout ( std430, binding = 0) readonly buffer Materials {
+	Material materials[]; // only the last member can be unsized array
+};
 
 float getShadow(float bias = 0.001f, const int r = 10) {
 	vec2 shadow_texel_size = 1.0f / textureSize(shadow_map, 0);
@@ -76,7 +95,8 @@ vec3 getColorVal() {
 	// MATERIAL VALUES
 	float alpha = 0.1f;
 	float metalness = 0.2f;
-	vec3 albedo = vec3(0.95f, 0.50f, 1.0f);
+	//vec3 albedo = vec3(0.95f, 0.50f, 1.0f);
+	vec3 albedo = materials[mat_index].diffuse.rgb;
 	float ior2 = 4.0;
 
 	// CALCULATED VALUES

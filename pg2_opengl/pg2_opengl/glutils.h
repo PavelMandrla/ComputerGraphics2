@@ -7,4 +7,6 @@ void SetVec3(const GLuint program, const GLfloat* data, const char* vecName);
 
 void SetSampler(const GLuint program, GLenum texture_unit, const char* sampler_name);
 
+void CreateBindlessTexture(GLuint& texture, GLuint64& handle, const int width, const int height, const GLvoid* data);
+
 #endif

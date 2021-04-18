@@ -18,6 +18,7 @@ out vec3 position_lcs;
 
 out vec3 omega_o_es;
 out vec3 omega_o;
+flat out int mat_index;
 
 
 
@@ -42,4 +43,6 @@ void main( void ) {
 	//CAMERA DIR
 	omega_o_es = -omega_i_es;
 	omega_o = normalize(position - cameraPos);
+
+	mat_index = material_index;
 }

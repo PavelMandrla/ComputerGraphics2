@@ -95,23 +95,18 @@ void Material::set_shader( Shader shader )
 	shader_ = shader;
 }
 
-Color3f Material::ambient( const Coord2f * tex_coord ) const
-{
+Color3f Material::ambient( const Coord2f * tex_coord ) const {
 	return ambient_;
 }
 
-Color3f Material::diffuse( const Coord2f * tex_coord ) const
-{
-	if ( tex_coord )
-	{
+Color3f Material::diffuse( const Coord2f * tex_coord ) const {
+	if ( tex_coord ) {
 		Texture3u * texture = textures_[kDiffuseMapSlot];
 
-		if ( texture )
-		{
+		if (texture) {
 			return Color3f( texture->texel( tex_coord->u, tex_coord->v ) );
 		}
 	}
-	
 	return diffuse_;
 }
 
