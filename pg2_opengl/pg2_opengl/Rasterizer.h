@@ -8,6 +8,8 @@
 #include "Directional.h"
 #include "ShaderProgram.h"
 
+
+
 class Rasterizer {
 private:
 	bool check_gl(const GLenum error);

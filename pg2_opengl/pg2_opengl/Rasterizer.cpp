@@ -224,20 +224,25 @@ void Rasterizer::initBuffers() {
 	auto vertices = this->scene->getVerticies();
 	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(MyVertex), vertices.data(), GL_STATIC_DRAW);
 	
-	// vertex position
+	// LAYOUT - VERTEX
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, scene->getVertexStride(), 0);	//popiseme, jaka je struktura toho vertex bufferu = na nultem indexu jsou veci velikosti 3 (x, y, z) typu float a nechceme je normalizovat, stride je pocet bytu, ktere lezi mezi dvema nasledujicimi zaznamy | posledni je offset od zacatku pole
 	glEnableVertexAttribArray(0);	
 
-	// vertex position
+	// LAYOUT - NORMAL
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, scene->getVertexStride(), (void*)(sizeof(float) * 3));
 	glEnableVertexAttribArray(1);
 
+	// LAYOUT - TANGENT
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, scene->getVertexStride(), (void*)(sizeof(float) * 6));
 	glEnableVertexAttribArray(2);
 	
-	// vertex texture coordinates		
+	// LAYOUT - TEXTURE COORDINATE
 	glVertexAttribPointer( 3, 2, GL_FLOAT, GL_FALSE, scene->getVertexStride(), (void*) (sizeof(float) * 9));
 	glEnableVertexAttribArray(3); //kazdy index, ktery popiseme, musime zenablovat
+
+	// LAYOUT - MATERIAL INDEX
+	glVertexAttribPointer(4, 1, GL_INT, GL_FALSE, scene->getVertexStride(), (void*)(sizeof(float) * 11));
+	glEnableVertexAttribArray(4); //kazdy index, ktery popiseme, musime zenablovat
 	
 	this->initIrradianceMapTexture();
 	this->initPrefilteredEnvMapTexture();

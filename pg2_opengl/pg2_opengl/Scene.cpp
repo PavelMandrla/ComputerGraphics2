@@ -8,20 +8,51 @@ std::default_random_engine generator;
 std::uniform_real_distribution<float> distribution(0, 0.99999f);
 auto rng = std::bind(distribution, generator);
 
-Scene::Scene(std::string& file_name, std::string& background_file) {
-	this->background = std::make_shared<Texture3f>(background_file);
+void Scene::loadMaterials() {
+	for (auto material : materials_) {
+		GLMaterial m;
 
-	const int no_surfaces = LoadOBJ( file_name.c_str(), surfaces_, materials_ );
+		// DIFUSE
+		if (material->hasTexture(Material::kDiffuseMapSlot)) {
+			m.albedo = Color3f({ 1, 1, 1 });
+			//TODO -> add texture handle
+		} else {
+			m.albedo = material->diffuse();
+		}
 
-	for ( auto surface : surfaces_ ) {
-		for ( int i = 0, k = 0; i < surface->no_triangles(); i++) {
-			Triangle & triangle = surface->get_triangle(i);
-			
+		// ROUGHNESS, METALNESS
+		if (material->hasTexture(Material::kRoughnessMapSlot)) {
+			m.rma = Color3f({ 1, 1, 1 });
+			//TODO -> add texture handle
+		} else {
+			m.rma = Color3f({ material->roughness_, material->metallicness, 1.0f });
+		}
+		
+		// NORMAL MAP
+		if (material->hasTexture(Material::kNormalMapSlot)) {
+			m.normal = Color3f({ 1, 1, 1 });
+			//TODO -> add texture handle
+		} else {
+			m.normal = Color3f({ 0, 0, 1 });
+		}
+
+		this->materials.push_back(m);
+		this->pointerIndexMap.emplace(material, this->materials.size()); // IMPORTANT -> INDEXES ARE SHIFTED BY 1, INDEX 0 IS RESERVED FOR WHEN THE TEXTURE FOR THE MATERIAL IS MISSING
+	}
+}
+
+void Scene::loadTextures() {
+	for (auto surface : surfaces_) {
+		int mat_index = this->pointerIndexMap.find(surface->get_material())->second;
+
+
+		for (int i = 0, k = 0; i < surface->no_triangles(); i++) {
+			Triangle& triangle = surface->get_triangle(i);
+
 			for (int j = 0; j < 3; j++, k += 3) {
-				const Vertex & vertex = triangle.vertex(j);
-				//vertex.normal
+				const Vertex& vertex = triangle.vertex(j);
 
-				verticies.push_back(MyVertex {
+				verticies.push_back(MyVertex{
 					// position
 					vertex.position.x,
 					vertex.position.y,
@@ -36,14 +67,26 @@ Scene::Scene(std::string& file_name, std::string& background_file) {
 					vertex.tangent.z,
 					// texture coordinates
 					vertex.texture_coords->u,
-					vertex.texture_coords->v
+					vertex.texture_coords->v,
+					// material index
+					mat_index
 					});
 			}
-			
 		}
 	}
 
 	this->vertex_stride = sizeof(MyVertex);
+}
+
+Scene::Scene(std::string& file_name, std::string& background_file) {
+	this->background = std::make_shared<Texture3f>(background_file);
+
+	const int no_surfaces = LoadOBJ( file_name.c_str(), surfaces_, materials_ );
+
+	this->loadMaterials();
+	this->loadTextures();
+
+	
 }
 
 Texture3f Scene::getPerfectIrradianceMap(int width, int height) {
@@ -270,3 +313,4 @@ Texture3f Scene::getIntegrationMap(int width, int height) {
 
 	return result;
 }
+

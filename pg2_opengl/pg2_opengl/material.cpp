@@ -165,3 +165,11 @@ Color3f Material::emission( const Coord2f * tex_coord ) const
 {
 	return emission_;
 }
+
+bool Material::hasTexture(const char slot) {
+	Texture3u* texture = textures_[slot];
+	if (texture) {
+		return true;
+	}
+	return false;
+}

@@ -4,6 +4,7 @@
 #include "vector3.h"
 #include "texture.h"
 #include "structs.h"
+#include <utility>
 
 /*! \def NO_TEXTURES
 \brief Maximální poèet textur pøiøazených materiálu.
@@ -129,6 +130,8 @@ public:
 	static const char kOpacityMapSlot; /*!< Èíslo slotu transparentní textury. */
 	static const char kRoughnessMapSlot; /*!< Èíslo slotu textury drsnosti. */
 	static const char kMetallicnessMapSlot; /*!< Èíslo slotu textury kovovosti. */
+
+	bool hasTexture(const char slot);
 
 private:
 	Texture3u * textures_[NO_TEXTURES]; /*!< Pole ukazatelù na textury. */

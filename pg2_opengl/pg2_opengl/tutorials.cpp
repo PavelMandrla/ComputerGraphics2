@@ -279,7 +279,8 @@ void tutorial() {
 	rastarizer.initDevice();
 	rastarizer.initPrograms();
 	//rastarizer.loadScene("D:\\prg\\cpp\\ComputerGraphics2\\data\\6887_allied_avenger.obj", "D:\\prg\\cpp\\ComputerGraphics2\\data\\cannon_4k.exr");
-	rastarizer.loadScene("D:\\prg\\cpp\\ComputerGraphics2\\data\\geosphere.obj", "D:\\prg\\cpp\\ComputerGraphics2\\data\\cannon_4k.exr");
+	//rastarizer.loadScene("D:\\prg\\cpp\\ComputerGraphics2\\data\\geosphere.obj", "D:\\prg\\cpp\\ComputerGraphics2\\data\\cannon_4k.exr");
+	rastarizer.loadScene("D:/prg/cpp/ComputerGraphics2/data/geosphere.obj", "D:/prg/cpp/ComputerGraphics2/data/cannon_4k.exr");
 	rastarizer.initBuffers();
 	rastarizer.mainLoop();
 }
