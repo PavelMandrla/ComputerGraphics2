@@ -20,9 +20,6 @@ out vec3 omega_o_es;
 out vec3 omega_o;
 flat out int mat_index;
 
-
-
-
 void main( void ) {
 	v_normal = normalize(normal);
 

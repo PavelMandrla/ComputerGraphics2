@@ -93,8 +93,10 @@ float Fresnell(float ct_o, float n_i) {
 
 vec3 getColorVal() {
 	// MATERIAL VALUES
-	float alpha = 0.1f;
-	float metalness = 0.2f;
+	//float alpha = 0.1f;
+	float alpha = materials[mat_index].rma.r;
+	//float metalness = 0.2f;
+	float metalness = materials[mat_index].rma.g;
 	//vec3 albedo = vec3(0.95f, 0.50f, 1.0f);
 	vec3 albedo = materials[mat_index].diffuse.rgb;
 	float ior2 = 4.0;

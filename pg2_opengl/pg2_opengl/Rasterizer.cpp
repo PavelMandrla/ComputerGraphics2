@@ -359,7 +359,7 @@ void Rasterizer::mainLoop() {
 		glDrawArrays( GL_TRIANGLES, 0, this->scene->getVerticies().size() );
 
 		glfwSwapBuffers( window );
-		glfwPollEvents();
+			glfwPollEvents();
 	}
 }
 
