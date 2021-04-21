@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "camera.h"
 
+constexpr double PI2 = 2 * M_PI;
+
 Camera::Camera(int width, int height, float fovY, Vector3 viewFrom, Vector3 viewAt, float tNear, float tFar) {
 	this->width = width;
 	this->height = height;
@@ -13,8 +15,9 @@ Camera::Camera(int width, int height, float fovY, Vector3 viewFrom, Vector3 view
 	auto viewDir = viewAt - viewFrom;
 	viewDir.Normalize();
 
-	this->yaw = atan2(viewDir.y, viewDir.x);
-	this->pitch = asin(-viewDir.z);
+	auto viewDir_sph = viewDir.getSphericalCoords();
+	this->yaw = viewDir_sph.first;
+	this->pitch = viewDir_sph.second;
 
 	this->tNear = tNear;
 	this->tFar = tFar;
@@ -31,11 +34,7 @@ void Camera::update(int width, int height) {
 }
 
 Vector3 Camera::getViewDir() {
-	auto result = Vector3{
-		float(cos(pitch) * cos(yaw)),
-		float(sin(pitch) * sin(yaw)),
-		float(-sin(pitch))
-	};
+	Vector3 result(yaw, pitch);
 	result.Normalize();
 	return result;
 }
@@ -60,8 +59,12 @@ void Camera::moveRight() {
 
 void Camera::adjustYaw(double x) {
 	this->yaw += float(x * M_PI / 10000.0f);
+	while (this->yaw < 0) this->yaw += PI2;
+	while (this->yaw > PI2) this->yaw -= PI2;
 }
 
 void Camera::adjustPitch(double y) {
 	this->pitch += float(y * M_PI / 10000.f);
+	if (this->pitch < 0) this->pitch = 0.01;
+	if (this->pitch > M_PI) this->yaw = M_PI - 0.01;
 }
