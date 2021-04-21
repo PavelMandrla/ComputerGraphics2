@@ -191,7 +191,7 @@ int Rasterizer::initDevice() {
 	// GL_LOWER_LEFT (OpenGL) or GL_UPPER_LEFT (DirectX, Windows) and GL_NEGATIVE_ONE_TO_ONE or GL_ZERO_TO_ONE
 	glClipControl( GL_UPPER_LEFT, GL_NEGATIVE_ONE_TO_ONE );
 
-	
+	return 0;
 }
 
 void Rasterizer::initPrograms() {	///řeší vytvoření vertex a fragment shader
@@ -242,19 +242,19 @@ void Rasterizer::initBuffers() {
 	glEnableVertexAttribArray(0);	
 
 	// LAYOUT - NORMAL
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, scene->getVertexStride(), (void*)(sizeof(float) * 3));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, scene->getVertexStride(), (void*) (sizeof(float) * 3));
 	glEnableVertexAttribArray(1);
 
 	// LAYOUT - TANGENT
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, scene->getVertexStride(), (void*)(sizeof(float) * 6));
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, scene->getVertexStride(), (void*) (sizeof(float) * 6));
 	glEnableVertexAttribArray(2);
 	
 	// LAYOUT - TEXTURE COORDINATE
-	glVertexAttribPointer( 3, 2, GL_FLOAT, GL_FALSE, scene->getVertexStride(), (void*) (sizeof(float) * 9));
+	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, scene->getVertexStride(), (void*) (sizeof(float) * 9));
 	glEnableVertexAttribArray(3); //kazdy index, ktery popiseme, musime zenablovat
 
 	// LAYOUT - MATERIAL INDEX
-	glVertexAttribPointer(4, 1, GL_INT, GL_FALSE, scene->getVertexStride(), (void*)(sizeof(float) * 11));
+	glVertexAttribIPointer(4, 1, GL_INT, scene->getVertexStride(), (void*) (sizeof(float) * 11));
 	glEnableVertexAttribArray(4); //kazdy index, ktery popiseme, musime zenablovat
 	
 	this->initIrradianceMapTexture();

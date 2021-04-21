@@ -272,15 +272,25 @@ void radTest() {
 	result.Save("D:\\prg\\cpp\\save.exr");
 }
 
+#define AVENGER
 void tutorial() {
-
-	//Rasterizer rastarizer( 640, 480, deg2rad( 45.0f ), Vector3( 200, 300, 400 ), Vector3( 0, 0, 40 ));
-	Rasterizer rastarizer( 640, 480, deg2rad(30), Vector3( 5, 0, 0 ), Vector3( 0, 0, 0 ));
+#ifdef AVENGER
+	Rasterizer rastarizer( 640, 480, deg2rad( 45.0f ), Vector3( -200, -300, 200 ), Vector3( 0, 0, 40 ));
 	rastarizer.initDevice();
 	rastarizer.initPrograms();
-	//rastarizer.loadScene("D:\\prg\\cpp\\ComputerGraphics2\\data\\6887_allied_avenger.obj", "D:\\prg\\cpp\\ComputerGraphics2\\data\\cannon_4k.exr");
-	//rastarizer.loadScene("D:\\prg\\cpp\\ComputerGraphics2\\data\\geosphere.obj", "D:\\prg\\cpp\\ComputerGraphics2\\data\\cannon_4k.exr");
-	rastarizer.loadScene("D:/prg/cpp/ComputerGraphics2/data/geosphere.obj", "D:/prg/cpp/ComputerGraphics2/data/cannon_4k.exr");
+	rastarizer.loadScene("D:/prg/cpp/ComputerGraphics2/data/avenger/6887_allied_avenger_gi2.obj", "D:/prg/cpp/ComputerGraphics2/data/background/background.exr");
 	rastarizer.initBuffers();
 	rastarizer.mainLoop();
+#else
+	Rasterizer rastarizer(640, 480, deg2rad(30), Vector3(5, 0, 0), Vector3(0, 0, 0));
+	rastarizer.initDevice();
+	rastarizer.initPrograms();
+	rastarizer.loadScene("D:/prg/cpp/ComputerGraphics2/data/geosphere/geosphere.obj", "D:/prg/cpp/ComputerGraphics2/data/background/background.exr");
+	rastarizer.initBuffers();
+	rastarizer.mainLoop();
+#endif
+
+
+
+	
 }

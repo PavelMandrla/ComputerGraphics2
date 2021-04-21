@@ -90,7 +90,6 @@ float Fresnell(float ct_o, float n_i) {
 	return n_i + (1 - n_i) * pow(1 - ct_o, 5);
 }
 
-
 vec3 getColorVal() {
 	// MATERIAL VALUES
 	//float alpha = 0.1f;
@@ -114,11 +113,11 @@ vec3 getColorVal() {
 }
 
 void main( void ) {	
-	FragColor = vec4(getColorVal(), 1.0f) * getShadow();
-	
-	//FragColor = vec4(getIrradiance(0.02f), 1.0f) * getShadow();
+	//FragColor = vec4(getColorVal(), 1.0f) * getShadow();
+	FragColor = vec4(getColorVal(), 1.0f);
+	//FragColor = vec4(materials[mat_index].diffuse.rgb, 1.0f);
 
 	//NORMAL SHADER
 	//vec3 color  = (unified_normal_es + 1) / 2;
-	//FragColor = vec4( color.xyz, 1.0f ) * getShadow();
+	//FragColor = vec4( color.xyz, 1.0f );
 }

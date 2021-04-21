@@ -60,7 +60,12 @@ void Scene::loadMaterials() {
 
 void Scene::loadTextures() {
 	for (auto surface : surfaces_) {
-		int mat_index = this->pointerIndexMap.find(surface->get_material())->second;
+		auto it = this->pointerIndexMap.find(surface->get_material());
+		if (it == this->pointerIndexMap.end()) {
+			printf("material not found");
+		}
+
+		int mat_index = it->second;
 
 
 		for (int i = 0, k = 0; i < surface->no_triangles(); i++) {
