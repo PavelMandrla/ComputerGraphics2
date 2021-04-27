@@ -6,9 +6,14 @@
 
 in vec3 v_normal;
 in vec3 unified_normal_es;
+in vec3 v_tangent;
+in vec3 unified_tangent_es;
+
 in vec3 position_lcs;
 in vec3 omega_o_es;
 in vec3 omega_o;
+
+in vec2 texCoord;
 flat in int mat_index;
 
 uniform sampler2D irradiance_map;
@@ -32,6 +37,65 @@ struct Material {
 layout ( std430, binding = 0) readonly buffer Materials {
 	Material materials[]; // only the last member can be unsized array
 };
+
+vec3 rotateVector(vec3 v, vec3 n) {
+	vec3 o1 =  normalize((abs(n.x) > abs(n.z)) ? vec3(-n.y, n.x, 0.0f) : vec3(0.0f, -n.z, n.y));
+	vec3 o2 = normalize(cross(o1, n));
+	return mat3(o1,o2,n) * v;
+}
+
+mat3x3 getTBN(vec3 normal, vec3 tangent) {
+	vec3 n = normalize(normal);
+	vec3 t = normalize(tangent - cross(tangent, n) * n);
+	vec3 b = cross(n, t);
+	return mat3x3(t, b, n);
+}
+
+
+
+vec3 getAlbedo() {
+	vec3 result = materials[mat_index].diffuse.rgb;
+	if (result == vec3(1,1,1)) {
+		result = texture(sampler2D( materials[mat_index].tex_diffuse), -texCoord).rgb;
+	}
+	return result;
+}
+
+float getReflectiveness() {
+	if ( materials[mat_index].rma.rgb == vec3(1,1,1)) {
+		return texture(sampler2D(materials[mat_index].tex_rma), -texCoord).r;
+	} else {
+		return materials[mat_index].rma.r;
+	}
+}
+
+float getMetalness() {
+	if ( materials[mat_index].rma.rgb == vec3(1,1,1)) {
+		return texture(sampler2D(materials[mat_index].tex_rma), -texCoord).g;
+	} else {
+		return materials[mat_index].rma.g;
+	}
+}
+
+vec3 getNormal_unified() {
+	vec3 norm = materials[mat_index].norm.rgb;
+	if (norm == vec3(1,1,1)) {
+		norm = texture(sampler2D( materials[mat_index].tex_diffuse), -texCoord).rgb;
+	}
+
+	return rotateVector(norm, unified_normal_es);
+}
+
+vec3 getNormal_raw() {
+	vec3 norm = materials[mat_index].norm.rgb;
+	if (norm == vec3(1,1,1)) {
+		norm = 2 * texture(sampler2D(materials[mat_index].tex_norm), texCoord).rgb - vec3(1,1,1);
+	}
+	return getTBN(v_normal, v_tangent) * norm;
+	//return rotateVector(norm, v_normal);
+}
+
+
 
 float getShadow(float bias = 0.001f, const int r = 10) {
 	vec2 shadow_texel_size = 1.0f / textureSize(shadow_map, 0);
@@ -59,7 +123,7 @@ vec2 getUV(vec3 v) {
 }
 
 vec3 getIrradiance() {
-	vec2 uv = getUV(v_normal);
+	vec2 uv = getUV(getNormal_raw());
 
 	return texture(irradiance_map, uv).rgb;
 }
@@ -68,7 +132,7 @@ vec3 getPrefEnv(float alpha) {
 	const float maxLevel = 8;
 	
 	float x = (log(alpha) + 7.0f) / 7.0f;
-	vec3 omega_i = omega_o - 2 * dot(omega_o, v_normal) * v_normal;
+	vec3 omega_i = omega_o - 2 * dot(omega_o, getNormal_raw()) * getNormal_raw();
 
 	return texture(prefilteredEnv_map, getUV(omega_i), x * maxLevel).rgb;
 }
@@ -92,32 +156,40 @@ float Fresnell(float ct_o, float n_i) {
 
 vec3 getColorVal() {
 	// MATERIAL VALUES
-	//float alpha = 0.1f;
-	float alpha = materials[mat_index].rma.r;
-	//float metalness = 0.2f;
-	float metalness = materials[mat_index].rma.g;
-	//vec3 albedo = vec3(0.95f, 0.50f, 1.0f);
-	vec3 albedo = materials[mat_index].diffuse.rgb;
+	float alpha = getReflectiveness();
 	float ior2 = 4.0;
 
 	// CALCULATED VALUES
-	float ct_o = dot(unified_normal_es, omega_o_es);
+	float ct_o = dot(getNormal_unified(), omega_o_es);
 	float k_s = Fresnell(ct_o, 1.0f, ior2);
-	float k_d = (1 - k_s) * (1 - metalness);
+	float k_d = (1 - k_s) * (1 - getMetalness());
 
 	vec3 sb = getIntegrationMapVal(alpha, ct_o);	
-	vec3 Ld = albedo * getIrradiance();
+	vec3 Ld =  getAlbedo() * getIrradiance();
 	vec3 Lr =  getPrefEnv(alpha);
 
 	return  k_d*Ld + (k_s*sb.x + sb.y) * Lr;
 }
 
 void main( void ) {	
+	/*
+	float bias = 0.001f;
+	vec2 a_tc = ( position_lcs.xy+ vec2( 1.0f ) ) * 0.5f;
+	float depth = texture( shadow_map, a_tc).r;
+	depth = depth * 2.0f - 1.0f;
+	float shadow = ( depth + bias >= position_lcs.z) ? 1.0f : 0.0f;
+
+	FragColor = vec4(getColorVal(), 1.0f) * shadow;
+	*/
+
+
 	//FragColor = vec4(getColorVal(), 1.0f) * getShadow();
-	FragColor = vec4(getColorVal(), 1.0f);
-	//FragColor = vec4(materials[mat_index].diffuse.rgb, 1.0f);
+	//FragColor = vec4(getColorVal(), 1.0f);
 
 	//NORMAL SHADER
-	//vec3 color  = (unified_normal_es + 1) / 2;
+	//vec3 color  = (getNormal_unified() + 1) / 2;
 	//FragColor = vec4( color.xyz, 1.0f );
+
+	vec3 color = (getNormal_raw() + 1) / 2;
+	FragColor = vec4( color.xyz, 1.0f );
 }
