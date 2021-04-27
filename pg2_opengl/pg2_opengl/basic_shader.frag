@@ -22,6 +22,8 @@ uniform mat4 mvn;
 
 out vec4 FragColor;
 
+mat3x3 TBN;
+
 struct Material {
 	vec3 diffuse;
 	uint64_t tex_diffuse;
@@ -43,9 +45,9 @@ vec3 rotateVector(vec3 v, vec3 n) {
 	return mat3(o1,o2,n) * v;
 }
 
-mat3x3 getTBN(vec3 normal, vec3 tangent) {
-	vec3 n = normalize(normal);
-	vec3 t = normalize(tangent - cross(tangent, n) * n);
+mat3x3 getTBN() {
+	vec3 n = normalize(v_normal);
+	vec3 t = normalize(v_tangent - cross(v_tangent, n) * n);
 	vec3 b = cross(n, t);
 	return mat3x3(t, b, n);
 }
@@ -77,8 +79,8 @@ float getMetalness() {
 vec3 getNormal_raw() {
 	vec3 norm = materials[mat_index].norm.rgb;
 	if (norm == vec3(1,1,1)) {
-		norm = 2 * texture(sampler2D(materials[mat_index].tex_norm), texCoord).rgb - vec3(1,1,1);
-		return getTBN(v_normal, v_tangent) * norm;
+		norm = 2 * texture(sampler2D(materials[mat_index].tex_norm), -texCoord).rgb - vec3(1,1,1);
+		return TBN * norm;
 	}
 	return v_normal;
 }
@@ -86,7 +88,6 @@ vec3 getNormal_raw() {
 vec3 getNormal_unified() {
 	return normalize((mvn * vec4(getNormal_raw().xyz, 0.0f)).xyz);
 }
-
 
 float getShadow(float bias = 0.001f, const int r = 10) {
 	vec2 shadow_texel_size = 1.0f / textureSize(shadow_map, 0);
@@ -163,6 +164,7 @@ vec3 getColorVal() {
 }
 
 void main( void ) {	
+	TBN = getTBN();
 	/*
 	float bias = 0.001f;
 	vec2 a_tc = ( position_lcs.xy+ vec2( 1.0f ) ) * 0.5f;
@@ -175,10 +177,10 @@ void main( void ) {
 
 
 	//FragColor = vec4(getColorVal(), 1.0f) * getShadow();
-	//FragColor = vec4(getColorVal(), 1.0f);
+	FragColor = vec4(getColorVal(), 1.0f);
 
 	//NORMAL SHADER
-	vec3 color  = (getNormal_unified() + 1) / 2;
+	//vec3 color  = (getNormal_unified() + 1) / 2;
 	//vec3 color = (getNormal_raw() + 1) / 2;
-	FragColor = vec4( color.xyz, 1.0f );
+	//FragColor = vec4( color.xyz, 1.0f );
 }
