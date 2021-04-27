@@ -16,7 +16,6 @@ out vec3 v_normal;
 out vec3 v_tangent;
 
 out vec3 position_lcs;
-
 out vec3 omega_o_es;
 out vec3 omega_o;
 out vec2 texCoord;
@@ -25,8 +24,7 @@ flat out int mat_index;
 
 void main( void ) {
 	v_normal = normalize(normal);
-
-	v_tangent = normalize(v_tangent);
+	v_tangent = normalize(tangent);
 
 	vec4 hit_es = mv * vec4(position.xyz, 1.0f);
 	vec3 omega_i_es = normalize( hit_es.xyz / hit_es.w );

@@ -71,6 +71,18 @@ void Scene::loadTextures() {
 		for (int i = 0, k = 0; i < surface->no_triangles(); i++) {
 			Triangle& triangle = surface->get_triangle(i);
 
+			auto dU1 = triangle.vertex(1).texture_coords->u - triangle.vertex(0).texture_coords->u;
+			auto dV1 = triangle.vertex(1).texture_coords->v - triangle.vertex(0).texture_coords->v;
+
+			auto dU2 = triangle.vertex(2).texture_coords->u - triangle.vertex(0).texture_coords->u;
+			auto dV2 = triangle.vertex(2).texture_coords->v - triangle.vertex(0).texture_coords->v;
+
+			auto e1 = triangle.vertex(1).position - triangle.vertex(0).position;
+			auto e2 = triangle.vertex(2).position - triangle.vertex(0).position;
+
+			auto t = (dV2 * e1 - dV1 * e2) / (dU1 * dV2 - dU2 * dV1);
+			t.Normalize();
+
 			for (int j = 0; j < 3; j++, k += 3) {
 				const Vertex& vertex = triangle.vertex(j);
 
@@ -84,9 +96,9 @@ void Scene::loadTextures() {
 					vertex.normal.y,
 					vertex.normal.z,
 					// tangent
-					vertex.tangent.x,
-					vertex.tangent.y,
-					vertex.tangent.z,
+					t.x, //vertex.tangent.x,
+					t.y, //vertex.tangent.y,
+					t.z, //vertex.tangent.z,
 					// texture coordinates
 					vertex.texture_coords->u,
 					vertex.texture_coords->v,

@@ -45,11 +45,11 @@ vec3 rotateVector(vec3 v, vec3 n) {
 	return mat3(o1,o2,n) * v;
 }
 
-mat3x3 getTBN() {
+mat3 getTBN() {
 	vec3 n = normalize(v_normal);
-	vec3 t = normalize(v_tangent - cross(v_tangent, n) * n);
-	vec3 b = cross(n, t);
-	return mat3x3(t, b, n);
+	vec3 t = normalize(v_tangent - dot(v_tangent, n) * n);
+	vec3 b = normalize(cross(n, t));
+	return mat3(t, b, n);
 }
 
 vec3 getAlbedo() {
@@ -79,8 +79,11 @@ float getMetalness() {
 vec3 getNormal_raw() {
 	vec3 norm = materials[mat_index].norm.rgb;
 	if (norm == vec3(1,1,1)) {
-		norm = 2 * texture(sampler2D(materials[mat_index].tex_norm), -texCoord).rgb - vec3(1,1,1);
-		return TBN * norm;
+		//return normalize( 2* texture(sampler2D(materials[mat_index].tex_norm), texCoord).rgb - vec3(1,1,1));
+		vec3 n_ls = normalize( 2* texture(sampler2D(materials[mat_index].tex_norm), texCoord).rgb - vec3(1,1,1));
+		//vec3 n_ls = normalize(texture(sampler2D(materials[mat_index].tex_norm), texCoord).rgb);
+		return TBN * n_ls;
+		return  normalize(TBN * n_ls);
 	}
 	return v_normal;
 }
@@ -181,6 +184,7 @@ void main( void ) {
 
 	//NORMAL SHADER
 	//vec3 color  = (getNormal_unified() + 1) / 2;
+
 	//vec3 color = (getNormal_raw() + 1) / 2;
 	//FragColor = vec4( color.xyz, 1.0f );
 }
