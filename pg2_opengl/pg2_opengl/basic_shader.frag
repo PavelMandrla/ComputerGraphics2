@@ -81,18 +81,18 @@ vec3 getNormal_unified() {
 	vec3 norm = materials[mat_index].norm.rgb;
 	if (norm == vec3(1,1,1)) {
 		norm = texture(sampler2D( materials[mat_index].tex_diffuse), -texCoord).rgb;
+		return getTBN(unified_normal_es, unified_tangent_es) * norm;
 	}
-
-	return rotateVector(norm, unified_normal_es);
+	return unified_normal_es;
 }
 
 vec3 getNormal_raw() {
 	vec3 norm = materials[mat_index].norm.rgb;
 	if (norm == vec3(1,1,1)) {
 		norm = 2 * texture(sampler2D(materials[mat_index].tex_norm), texCoord).rgb - vec3(1,1,1);
+		return getTBN(v_normal, v_tangent) * norm;
 	}
-	return getTBN(v_normal, v_tangent) * norm;
-	//return rotateVector(norm, v_normal);
+	return v_normal;
 }
 
 
@@ -184,12 +184,12 @@ void main( void ) {
 
 
 	//FragColor = vec4(getColorVal(), 1.0f) * getShadow();
-	//FragColor = vec4(getColorVal(), 1.0f);
+	FragColor = vec4(getColorVal(), 1.0f);
 
 	//NORMAL SHADER
 	//vec3 color  = (getNormal_unified() + 1) / 2;
 	//FragColor = vec4( color.xyz, 1.0f );
 
-	vec3 color = (getNormal_raw() + 1) / 2;
-	FragColor = vec4( color.xyz, 1.0f );
+	//vec3 color = (getNormal_raw() + 1) / 2;
+	//FragColor = vec4( color.xyz, 1.0f );
 }
