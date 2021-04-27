@@ -5,9 +5,7 @@
 #define M_PI 3.1415926535897932384626433832795
 
 in vec3 v_normal;
-in vec3 unified_normal_es;
 in vec3 v_tangent;
-in vec3 unified_tangent_es;
 
 in vec3 position_lcs;
 in vec3 omega_o_es;
@@ -20,6 +18,7 @@ uniform sampler2D irradiance_map;
 uniform sampler2D prefilteredEnv_map;
 uniform sampler2D integration_map;
 uniform sampler2D shadow_map;
+uniform mat4 mvn;
 
 out vec4 FragColor;
 
@@ -51,8 +50,6 @@ mat3x3 getTBN(vec3 normal, vec3 tangent) {
 	return mat3x3(t, b, n);
 }
 
-
-
 vec3 getAlbedo() {
 	vec3 result = materials[mat_index].diffuse.rgb;
 	if (result == vec3(1,1,1)) {
@@ -77,15 +74,6 @@ float getMetalness() {
 	}
 }
 
-vec3 getNormal_unified() {
-	vec3 norm = materials[mat_index].norm.rgb;
-	if (norm == vec3(1,1,1)) {
-		norm = texture(sampler2D( materials[mat_index].tex_diffuse), -texCoord).rgb;
-		return getTBN(unified_normal_es, unified_tangent_es) * norm;
-	}
-	return unified_normal_es;
-}
-
 vec3 getNormal_raw() {
 	vec3 norm = materials[mat_index].norm.rgb;
 	if (norm == vec3(1,1,1)) {
@@ -95,6 +83,9 @@ vec3 getNormal_raw() {
 	return v_normal;
 }
 
+vec3 getNormal_unified() {
+	return normalize((mvn * vec4(getNormal_raw().xyz, 0.0f)).xyz);
+}
 
 
 float getShadow(float bias = 0.001f, const int r = 10) {
@@ -184,12 +175,10 @@ void main( void ) {
 
 
 	//FragColor = vec4(getColorVal(), 1.0f) * getShadow();
-	FragColor = vec4(getColorVal(), 1.0f);
+	//FragColor = vec4(getColorVal(), 1.0f);
 
 	//NORMAL SHADER
-	//vec3 color  = (getNormal_unified() + 1) / 2;
-	//FragColor = vec4( color.xyz, 1.0f );
-
+	vec3 color  = (getNormal_unified() + 1) / 2;
 	//vec3 color = (getNormal_raw() + 1) / 2;
-	//FragColor = vec4( color.xyz, 1.0f );
+	FragColor = vec4( color.xyz, 1.0f );
 }

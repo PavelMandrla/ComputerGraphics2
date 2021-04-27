@@ -274,7 +274,7 @@ void radTest() {
 
 
 
-#define AVENGER
+//#define AVENGER
 #define PIECE
 
 void tutorial() {
