@@ -274,8 +274,8 @@ void radTest() {
 
 
 
-//#define AVENGER
-#define PIECE
+#define AVENGER
+//#define PIECE
 
 void tutorial() {
 #if defined AVENGER
@@ -287,7 +287,7 @@ void tutorial() {
 	rastarizer.initBuffers();
 	rastarizer.mainLoop();
 #elif defined PIECE
-	Rasterizer rastarizer(640, 480, deg2rad(45.0f), Vector3(-100, 0, 20), Vector3(0, 0, 40));
+	Rasterizer rastarizer(640, 480, deg2rad(45.0f), Vector3(100, 0, 0), Vector3(0, 0, 40));
 	rastarizer.initDevice();
 	rastarizer.initPrograms();
 	rastarizer.loadScene("D:/prg/cpp/ComputerGraphics2/data/piece/piece_02.obj", "D:/prg/cpp/ComputerGraphics2/data/background/background.exr");

@@ -17,7 +17,7 @@ protected:
 public:
 	Directional();
 
-	Directional(Vector3 viewFrom, Vector3 viewAt, float fovY, int width=100, int height=100, float tNear=1.0f, float tFar=1000.0f);
+	Directional(Vector3 viewFrom, Vector3 viewAt, float fovY, int width=100, int height=100, float tNear=1.0f, float tFar=10000.0f);
 
 	Matrix4x4 getMVP();
 

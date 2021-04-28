@@ -133,7 +133,8 @@ void Rasterizer::initSSBOMaterials() {
 
 Rasterizer::Rasterizer(int width, int height, float fovY, Vector3 viewFrom, Vector3 viewAt) {
 	this->camera = std::make_shared<Camera>(width, height, fovY, viewFrom, viewAt);
-	this->light = std::make_shared<Directional>(Vector3 {0, 10, 10}, Vector3 {0, 0, 0}, deg2rad(45), 1024, 1024);
+	this->light = std::make_shared<Directional>(Vector3 {-200, -300, 200}, Vector3 {0, 0, 0}, deg2rad(45), 1024, 1024);
+	//this->light = std::make_shared<Directional>(Vector3 {50, 0, 0}, Vector3 {0, 0, 0}, deg2rad(45), 1024, 1024);
 }
 
 Rasterizer::~Rasterizer() {

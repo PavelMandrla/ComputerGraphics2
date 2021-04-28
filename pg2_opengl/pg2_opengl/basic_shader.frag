@@ -92,14 +92,14 @@ vec3 getNormal_unified() {
 	return normalize((mvn * vec4(getNormal_raw().xyz, 0.0f)).xyz);
 }
 
-float getShadow(float bias = 0.001f, const int r = 10) {
+float getShadow(float bias = 0.000001f, const int r = 2) {
 	vec2 shadow_texel_size = 1.0f / textureSize(shadow_map, 0);
 	float shadow = 0.0f;
 
 	for (int y = -r; y <= r; ++y) {
 		for (int x = -r; x <= r; ++x) {
 			vec2 a_tc = (position_lcs.xy + vec2(1.0f)) * 0.5f;
-			a_tc += vec2(x, y) * shadow_texel_size;
+			a_tc += vec2(y, x) * shadow_texel_size;
 			float depth = texture(shadow_map, a_tc).r * 2.0f - 1.0f;
 			shadow += (depth + bias >= position_lcs.z) ? 1.0f : 0.25f;
 		}
@@ -179,8 +179,8 @@ void main( void ) {
 	*/
 
 
-	//FragColor = vec4(getColorVal(), 1.0f) * getShadow();
-	FragColor = vec4(getColorVal(), 1.0f);
+	FragColor = vec4(getColorVal(), 1.0f) * getShadow();
+	//FragColor = vec4(getColorVal(), 1.0f);
 
 	//NORMAL SHADER
 	//vec3 color  = (getNormal_unified() + 1) / 2;
